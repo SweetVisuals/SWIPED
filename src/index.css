@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+:root {
+  --ink: #1A1A1A;
+  --paper: #FDFCFB;
+  --accent: #E8D5C4;
+  --muted: #9A9187;
+  --gold: #D4AF37;
+  --topbarBg: #1A1A1A;
+  --topbarText: #FDFCFB;
+  --buttonBg: #1A1A1A;
+  --buttonText: #FDFCFB;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-topbarBg: var(--topbarBg);
+  --color-topbarText: var(--topbarText);
+  --color-buttonBg: var(--buttonBg);
+  --color-buttonText: var(--buttonText);
+
+  --animate-shine: shine 3s infinite;
+  --animate-spin-slow: spin 8s linear infinite;
+
+  @keyframes shine {
+    from { left: -100%; opacity: 0; }
+    20% { opacity: 0.5; }
+    40% { left: 100%; opacity: 0; }
+    to { left: 100%; opacity: 0; }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+}
+
+@layer components {
+  .luxury-button {
+    @apply px-8 py-3 bg-transparent border border-ink text-ink hover:bg-ink hover:text-paper transition-all duration-300 text-[11px] tracking-[0.2em] uppercase font-bold;
+  }
+  
+  .luxury-button-filled {
+    @apply px-8 py-3 bg-buttonBg text-buttonText border border-buttonBg hover:bg-transparent hover:text-ink transition-all duration-300 text-[11px] tracking-[0.2em] uppercase font-bold;
+  }
+
+  .admin-tab {
+    @apply px-4 py-2 text-[11px] font-bold uppercase tracking-widest transition-colors border-l-2 border-transparent hover:text-ink/80 text-muted;
+  }
+  
+  .admin-tab-active {
+    @apply border-ink text-ink bg-accent/20;
+  }
+  
+  .card-minimal {
+    @apply bg-white border border-accent/50 p-6 transition-all hover:shadow-sm;
+  }
+}
