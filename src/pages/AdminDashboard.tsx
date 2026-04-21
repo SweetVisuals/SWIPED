@@ -1518,7 +1518,7 @@ const OrdersTab = ({ orders, setOrders, deleteOrder, updateOrder }: any) => {
                        <td className="px-8 py-6">
                           <div className="flex flex-col">
                              <span className="font-bold uppercase tracking-widest text-[11px] mb-0.5">{o.customerName}</span>
-                             <span className="text-[9px] text-muted lowercase font-mono">user_{o.id}@lashglaze.com</span>
+                             <span className="text-[9px] text-muted lowercase font-mono">{o.customerEmail || 'no-email@lashglaze.com'}</span>
                           </div>
                        </td>
                        <td className="px-8 py-6">

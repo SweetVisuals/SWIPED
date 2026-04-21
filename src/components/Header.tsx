@@ -137,10 +137,10 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onAdminClick, onCart
                         Active Identity
                       </p>
                       <p className="text-xs font-serif italic text-topbarText mb-1">
-                        {user?.user_metadata?.full_name || user?.user_metadata?.name || 'Aura Member'}
+                        {profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || 'Aura Member'}
                       </p>
                       <p className="text-[9px] font-mono opacity-50 text-topbarText truncate">
-                        {user?.email}
+                        {profile?.email || user?.email}
                       </p>
                     </div>
 

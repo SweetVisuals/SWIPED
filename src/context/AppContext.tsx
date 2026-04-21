@@ -880,7 +880,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          profile_id: (user && orderData.customer_email.toLowerCase() === user.email?.toLowerCase()) ? user.id : null,
+          profile_id: (user && (orderData.customer_email.toLowerCase() === user.email?.toLowerCase() || orderData.customer_email.toLowerCase() === profile?.email?.toLowerCase())) ? user.id : null,
           customer_name: orderData.customer_name,
           customer_email: orderData.customer_email,
           total: orderData.total,

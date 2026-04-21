@@ -91,7 +91,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('*')
-        .eq('profile_id', user.id)
+        .or(`profile_id.eq.${user.id},customer_email.eq.${profileData.email}`)
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
@@ -222,7 +222,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                     )}
                    </div>
                    <p className="text-[10px] uppercase tracking-[0.4em] text-muted font-bold mt-2">
-                    {profile?.role === 'admin' ? 'Master Architect' : 'Aura Member'} / {user?.email}
+                    {profile?.role === 'admin' ? 'Master Architect' : 'Aura Member'} / {profile?.email || user?.email}
                    </p>
                 </div>
              </div>
@@ -256,7 +256,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                           <label className="text-[9px] uppercase tracking-widest font-bold text-muted ml-1">Email Cipher (Fixed)</label>
                           <input 
                             type="text" 
-                            value={user?.email || ''} 
+                            value={profile?.email || user?.email || ''} 
                             disabled 
                             className="w-full bg-accent/5 p-5 text-[11px] font-bold tracking-widest outline-none cursor-not-allowed text-ink"
                           />
