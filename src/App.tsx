@@ -126,33 +126,52 @@ function AppContent() {
         )}
 
         {currentPage === 'terms' && (
-           <StaticPage 
-             title="Terms & Conditions" 
-             content={renderPolicyContent('terms', "These Terms and Conditions constitute a legally binding agreement between you and Lash Glaze Strip Lashes concerning your access to and use of the website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto.")} 
-           />
+            <StaticPage 
+              title="Terms & Conditions" 
+              content={renderPolicyContent('terms', "Welcome to Lash Glaze. By accessing this website, you agree to be bound by these Terms and Conditions. This website is intended for personal, non-commercial use. All content, including designs, logos, and images, is the property of Lash Glaze and is protected by copyright laws.")} 
+            />
         )}
         {currentPage === 'privacy' && (
-           <StaticPage 
-             title="Privacy Policy" 
-             content={renderPolicyContent('privacy', "We respect your privacy and are committed to protecting it. This Privacy Policy outlines our practices concerning the collection, use, and disclosure of your information when you use our website.")} 
-           />
+            <StaticPage 
+              title="Privacy Policy" 
+              content={renderPolicyContent('privacy', "Your privacy is paramount to us at Lash Glaze. We collect information provided during checkout, including name, email, and shipping address. We do not store credit card info; all payments are processed securely via Stripe and PayPal.")} 
+            />
         )}
         {currentPage === 'shipping' && (
-           <StaticPage 
-             title="Shipping Logistics" 
-             content={renderPolicyContent('shipping', "All orders are processed within 1-2 business days. Standard shipping typically takes 3-5 business days within the EU.")} 
-           />
+            <StaticPage 
+              title="Shipping Logistics" 
+              content={renderPolicyContent('shipping', "Lash Glaze is committed to delivering your premium lashes as quickly and safely as possible. All orders are processed within 1-2 business days. Shipping charges are calculated dynamically at checkout based on your delivery address. We ship worldwide.")} 
+            />
         )}
         {currentPage === 'returns' && (
-           <StaticPage 
-             title="Returns & Claims" 
-             content={renderPolicyContent('refund', "We accept returns for unused, unopened products in their original packaging within 14 days of delivery. Due to hygiene regulations, we cannot accept returns on lashes that have been removed from their tray.")} 
-           />
+            <StaticPage 
+              title="Returns & Claims" 
+              content={renderPolicyContent('refund', "At Lash Glaze, we take hygiene seriously. Due to the personal nature of our products, strip lashes can only be returned if they are in their original, unopened, and unused condition within 14 days of delivery. For hygiene reasons, any lashes removed from the tray cannot be returned.")} 
+            />
         )}
         {currentPage === 'faq' && (
            <StaticPage 
              title="Common Queries" 
-             content={<><p><strong>Q: How long do the lashes last?</strong><br/>A: With proper care, our premium silk lashes can be worn up to 20 times.</p><p><strong>Q: Do you ship internationally?</strong><br/>A: Yes, we ship worldwide. Shipping costs will apply and be added at checkout.</p></>} 
+             content={
+               <div className="space-y-12">
+                 <div>
+                   <p className="font-sans text-[10px] uppercase font-black tracking-widest text-gold mb-2">Longevity & Care</p>
+                   <p>How long can I wear Lash Glaze strip lashes? Our lashes are crafted from the finest artisanal silk and are designed for longevity. With proper removal and storage in their original tray, a single pair can be worn up to 20 times flawlessly.</p>
+                 </div>
+                 <div>
+                   <p className="font-sans text-[10px] uppercase font-black tracking-widest text-gold mb-2">Global Access</p>
+                   <p>Do you offer international shipping? Yes, we ship our premium collections worldwide. Shipping rates and delivery estimates are calculated dynamically at checkout based on your global location and preferred courier service.</p>
+                 </div>
+                 <div>
+                   <p className="font-sans text-[10px] uppercase font-black tracking-widest text-gold mb-2">Ethical Standards</p>
+                   <p>Are your lashes cruelty-free? Absolutely. At Lash Glaze, we are committed to ethical beauty. All our lashes are 100% vegan and cruelty-free, using high-grade synthetic silk that mimics the softness of natural fibers.</p>
+                 </div>
+                 <div>
+                   <p className="font-sans text-[10px] uppercase font-black tracking-widest text-gold mb-2">Order Tracking</p>
+                   <p>How do I track my order? Once your order is processed, you will receive a tracking code via email. You can also monitor your order's journey directly within your 'Atelier' profile or on our dedicated tracking page.</p>
+                 </div>
+               </div>
+             } 
            />
         )}
       </main>

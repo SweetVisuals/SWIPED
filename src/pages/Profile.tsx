@@ -272,7 +272,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                     </form>
                  </div>
                  
-                 <div className="grid grid-cols-2 gap-6 pt-10 border-t border-accent/10">
+                 <div className="grid grid-cols-2 gap-6 pt-10 bg-accent/5 -mx-4 px-4 pb-10">
                     <div className="text-center md:text-left">
                        <p className="text-3xl font-serif italic">{orders.length}</p>
                        <p className="text-[8px] uppercase font-bold tracking-widest text-muted">Total Orders</p>
@@ -305,45 +305,70 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                     
                     <div className="space-y-6">
                        {subscriptions.map(sub => (
-                          <div 
-                            key={sub.id} 
-                            className={`p-6 space-y-4 shadow-sm relative overflow-hidden transition-all duration-500 ${
-                              sub.status === 'active' 
-                                ? 'bg-paper border-l-2 border-gold shadow-xl scale-[1.02]' 
-                                : 'bg-accent/5 opacity-60'
-                            }`}
-                          >
-                             {sub.status === 'active' && (
-                               <div className="absolute top-0 right-0 p-4 opacity-5">
-                                  <Zap size={60} fill="currentColor" />
-                               </div>
-                             )}
-                             <div className="flex justify-between items-start relative z-10">
-                                <div>
-                                   <div className="flex items-center gap-2">
-                                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink">{sub.interval} Replenishment</p>
-                                      {sub.status === 'active' && <div className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse" />}
-                                   </div>
-                                   <p className="text-[8px] text-muted uppercase font-bold tracking-wider mt-1">Status: <span className={sub.status === 'active' ? 'text-gold' : 'text-red-500'}>{sub.status}</span></p>
+                           <div 
+                             key={sub.id} 
+                             className={`p-10 space-y-8 shadow-2xl relative overflow-hidden transition-all duration-700 ${
+                               sub.status === 'active' 
+                                 ? 'bg-paper shadow-[0_30px_60px_rgba(0,0,0,0.1)] scale-[1.01]' 
+                                 : 'bg-accent/5 opacity-50 grayscale'
+                             }`}
+                           >
+                              {sub.status === 'active' && (
+                                <div className="absolute -top-10 -right-10 opacity-[0.03] rotate-12">
+                                   <Zap size={180} fill="currentColor" />
                                 </div>
-                                <p className="text-xs font-bold text-ink">{formatPrice(sub.total)}</p>
-                             </div>
-                             
-                             {sub.status === 'active' && (
-                                <div className="pt-4 border-t border-accent/10 flex justify-between items-end">
-                                   <div>
-                                      <p className="text-[8px] text-muted uppercase font-bold tracking-widest mb-1">Next Delivery Due</p>
-                                      <p className="text-[10px] font-bold text-ink">{sub.next_delivery_date ? new Date(sub.next_delivery_date).toLocaleDateString() : 'Pending'}</p>
-                                   </div>
-                                   <button 
-                                     onClick={() => handleCancelSubscription(sub.id)}
-                                     className="text-[8px] uppercase tracking-widest font-bold text-red-500/40 hover:text-red-500 transition-colors"
-                                   >
-                                      Terminate Cycle
-                                   </button>
-                                </div>
-                             )}
-                          </div>
+                              )}
+                              
+                              <div className="flex justify-between items-start relative z-10">
+                                 <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                       <div className={`w-2 h-2 rounded-full ${sub.status === 'active' ? 'bg-gold animate-pulse' : 'bg-muted'}`} />
+                                       <h3 className="text-sm font-serif italic text-ink">{sub.interval.charAt(0).toUpperCase() + sub.interval.slice(1)} Replenishment</h3>
+                                    </div>
+                                    <div className="space-y-1">
+                                       <p className="text-[8px] text-muted uppercase font-bold tracking-[0.2em]">Subscription Status</p>
+                                       <p className={`text-[10px] font-bold uppercase tracking-widest ${sub.status === 'active' ? 'text-gold' : 'text-red-500'}`}>{sub.status}</p>
+                                    </div>
+                                 </div>
+                                 <div className="text-right space-y-1">
+                                    <p className="text-[8px] text-muted uppercase font-bold tracking-[0.2em]">Cycle Total</p>
+                                    <p className="text-xl font-serif italic text-ink">{formatPrice(sub.total)}</p>
+                                 </div>
+                              </div>
+                              
+                              {sub.status === 'active' ? (
+                                 <div className="pt-8 border-t border-accent/10 flex flex-wrap gap-12 relative z-10">
+                                    <div>
+                                       <p className="text-[8px] text-muted uppercase font-bold tracking-[0.2em] mb-2">Next Shipment</p>
+                                       <div className="flex items-center gap-2 text-ink">
+                                          <Clock size={12} className="text-gold" />
+                                          <p className="text-[10px] font-bold tracking-widest">
+                                             {sub.next_delivery_date ? new Date(sub.next_delivery_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase() : 'CALCULATING...'}
+                                          </p>
+                                       </div>
+                                    </div>
+                                    <div>
+                                       <p className="text-[8px] text-muted uppercase font-bold tracking-[0.2em] mb-2">Member Since</p>
+                                       <p className="text-[10px] font-bold text-ink tracking-widest">
+                                          {new Date(sub.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase()}
+                                       </p>
+                                    </div>
+                                    <div className="flex-grow flex justify-end items-end">
+                                       <button 
+                                         onClick={() => handleCancelSubscription(sub.id)}
+                                         className="text-[8px] uppercase tracking-[0.3em] font-bold text-red-500/30 hover:text-red-500 transition-all hover:tracking-[0.4em] pb-1 border-b border-transparent hover:border-red-500/20"
+                                       >
+                                          Terminate Membership
+                                       </button>
+                                    </div>
+                                 </div>
+                              ) : (
+                                 <div className="pt-8 border-t border-accent/5 flex justify-between items-center opacity-40">
+                                    <p className="text-[8px] uppercase tracking-widest font-bold italic">This cycle was terminated on {new Date(sub.created_at).toLocaleDateString()}</p>
+                                    <Zap size={14} className="text-muted" />
+                                 </div>
+                              )}
+                           </div>
                        ))}
                     </div>
                  </section>
@@ -378,7 +403,12 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                               <div>
                                  <div className="flex items-center gap-3 mb-1">
                                     <p className="text-xs font-bold uppercase tracking-widest">{formatOrderNumber(order.order_number)}</p>
-                                    <span className="text-[8px] bg-gold/10 text-gold px-2 py-0.5 font-bold uppercase tracking-widest">
+                                    <span className={`text-[8px] px-3 py-1 font-bold uppercase tracking-widest shadow-inner ${
+                                       order.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-500' :
+                                       order.status === 'shipped' ? 'bg-gold/20 text-gold shadow-lg shadow-gold/5' :
+                                       order.status === 'cancelled' ? 'bg-red-500/10 text-red-500' :
+                                       'bg-accent/20 text-muted'
+                                    }`}>
                                        {order.status}
                                     </span>
                                  </div>

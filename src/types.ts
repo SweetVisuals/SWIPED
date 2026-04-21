@@ -32,11 +32,15 @@ export interface Order {
   orderNumber?: number;
   customerId: string;
   customerName: string;
+  customerEmail?: string;
   items: { productId: string; quantity: number; price: number }[];
   total: number;
   status: 'pending' | 'processed' | 'shipped' | 'out-for-delivery' | 'delivered' | 'cancelled';
   createdAt: string;
   trackingNumber?: string;
+  stripePaymentIntentId?: string;
+  paypalOrderId?: string;
+  paymentMethodId?: string;
 }
 
 export interface Customer {
@@ -124,4 +128,16 @@ export interface Policy {
   content: string;
   published: boolean;
   updatedAt: string;
+}
+
+export interface Subscription {
+  id: string;
+  profile_id: string;
+  status: 'active' | 'cancelled' | 'past_due' | 'incomplete';
+  interval: 'fortnightly' | 'monthly';
+  total: number;
+  created_at: string;
+  next_delivery_date: string;
+  stripe_subscription_id?: string;
+  stripe_customer_id?: string;
 }

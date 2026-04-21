@@ -66,6 +66,7 @@ export const AdminDashboard: React.FC<{ onNavigateBack: () => void }> = ({ onNav
     storeSettings,
     formatPrice,
     deleteOrder,
+    updateOrder,
     formatOrderNumber
   } = useApp();
 
@@ -256,7 +257,7 @@ export const AdminDashboard: React.FC<{ onNavigateBack: () => void }> = ({ onNav
             >
               {activeTab === 'overview' && <OverviewTab totalSales={totalSales} orders={orders} products={products} customers={customers} />}
               {activeTab === 'products' && <ProductsTab products={products} setProducts={setProducts} />}
-              {activeTab === 'orders' && <OrdersTab orders={orders} setOrders={setOrders} deleteOrder={deleteOrder} />}
+              {activeTab === 'orders' && <OrdersTab orders={orders} setOrders={setOrders} deleteOrder={deleteOrder} updateOrder={updateOrder} />}
               {activeTab === 'payment' && <PaymentTab paymentMethods={paymentMethods} setPaymentMethods={setPaymentMethods} shippingMethods={shippingMethods} setShippingMethods={setShippingMethods} />}
               {activeTab === 'customers' && <CustomersTab customers={customers} />}
               {activeTab === 'design' && <DesignTab />}
@@ -328,10 +329,9 @@ const AdminDropdown = ({ value, onChange, options, label }: { value: string, onC
 };
 
 const OverviewTab = ({ totalSales, orders, products, customers }: { totalSales: number, orders: any[], products: any[], customers: any[] }) => {
-  const { formatPrice, formatOrderNumber } = useApp();
+  const { formatPrice, formatOrderNumber, liveVisitors } = useApp();
   const [timeRange, setTimeRange] = useState('Last 30 Days');
   // Real Analytics Logic
-  const liveVisitorsCount = products.length > 0 ? Math.floor((orders.length * 0.2) + (products.length * 1.5) + 12) : 0;
   const conversionRate = orders.length > 0 ? ((orders.length / (orders.length * 28 + 140)) * 100).toFixed(1) : "0.0";
   const newCustomersCount = customers.length;
   const returnRate = orders.length > 0 ? (0.5 + (orders.length % 3) / 10).toFixed(1) : "0.0";
@@ -398,9 +398,9 @@ const OverviewTab = ({ totalSales, orders, products, customers }: { totalSales: 
          />
          <StatsCard 
             title="Live Visitors" 
-            value={liveVisitorsCount.toString()} 
+            value={liveVisitors.toString()} 
             icon={Eye} 
-            trend="+5 Active" 
+            trend="Active Now" 
             isLive 
             isActive={activeMetric === 'Live Visitors'}
             onClick={() => setActiveMetric('Live Visitors')}
@@ -495,7 +495,7 @@ const OverviewTab = ({ totalSales, orders, products, customers }: { totalSales: 
                 </div>
              </div>
 
-             <div className="bg-paper rounded-lg overflow-hidden">
+             <div className="bg-paper rounded-none overflow-hidden shadow-xl">
                 <div className="p-6 flex justify-between items-center">
                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold flex items-center gap-3">
                       <Clock size={14} className="text-gold" />
@@ -614,6 +614,167 @@ const StatsCard = ({ title, value, icon: Icon, trend, isLive, isActive, onClick 
     <p className="text-xl lg:text-2xl font-sans font-bold text-ink tracking-tight relative z-10 truncate">{value}</p>
   </button>
 );
+
+const RefundWizard = ({ order, onClose }: { order: Order, onClose: () => void }) => {
+  const { refundOrder, formatPrice, formatOrderNumber, storeSettings } = useApp();
+  const [step, setStep] = useState(1);
+  const [amount, setAmount] = useState(order.total.toString());
+  const [reason, setReason] = useState('Customer request');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; error?: string } | null>(null);
+
+  const handleRefund = async () => {
+    setIsProcessing(true);
+    const res = await refundOrder(order.id, parseFloat(amount), reason);
+    setResult(res);
+    setIsProcessing(false);
+    if (res.success) {
+      setStep(3);
+    } else {
+      setStep(3); // Show error in step 3
+    }
+  };
+
+  const paymentMethod = order.stripePaymentIntentId ? 'Stripe' : order.paypalOrderId ? 'PayPal' : 'Manual/Test';
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }} 
+        className="absolute inset-0 bg-ink/60 backdrop-blur-md" 
+        onClick={onClose} 
+      />
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0, y: 20 }} 
+        animate={{ scale: 1, opacity: 1, y: 0 }} 
+        className="bg-paper max-w-xl w-full shadow-2xl relative overflow-hidden flex flex-col"
+      >
+        <div className="p-8 border-b border-accent/10 flex justify-between items-center bg-accent/5">
+          <div>
+            <h2 className="text-xl font-serif italic text-gold">Refund Architect</h2>
+            <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Order {formatOrderNumber(order.orderNumber)}</p>
+          </div>
+          <button onClick={onClose} className="text-muted hover:text-ink"><X size={24} /></button>
+        </div>
+
+        <div className="p-8 space-y-6 min-h-[300px]">
+          {step === 1 && (
+            <div className="space-y-6">
+              <div className="bg-accent/10 p-6 rounded text-[10px] space-y-4 tracking-widest">
+                <div className="flex justify-between border-b border-white/5 pb-4">
+                  <span className="text-muted uppercase">Customer</span>
+                  <span className="font-bold text-ink uppercase">{order.customerName}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/5 pb-4">
+                  <span className="text-muted uppercase">Amount Paid</span>
+                  <span className="font-bold text-ink">{formatPrice(order.total)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted uppercase">Gateway</span>
+                  <span className="font-bold text-gold uppercase">{paymentMethod}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-muted">Refund Amount ({storeSettings.currency})</label>
+                  <input 
+                    type="number" 
+                    value={amount} 
+                    onChange={e => setAmount(e.target.value)}
+                    max={order.total}
+                    className="w-full bg-accent/10 p-5 text-xs font-bold tracking-widest outline-none border border-transparent focus:border-gold/30 transition-all font-sans"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-muted">Reason for Refund</label>
+                  <select 
+                    value={reason} 
+                    onChange={e => setReason(e.target.value)}
+                    className="w-full bg-accent/10 p-5 text-xs font-bold tracking-widest outline-none appearance-none"
+                  >
+                    <option value="Customer request">Customer request</option>
+                    <option value="Product return">Product return</option>
+                    <option value="Duplicate order">Duplicate order</option>
+                    <option value="Cancelled by server">Cancelled by server</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-8 flex flex-col items-center justify-center py-10">
+              <div className="w-16 h-16 rounded-full border-2 border-gold border-t-transparent animate-spin" />
+              <div className="text-center space-y-2">
+                <p className="text-[10px] uppercase font-bold tracking-[0.2em]">Contacting {paymentMethod} Gateway...</p>
+                <p className="text-[8px] text-muted uppercase tracking-widest">Executing secure refund handshake</p>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && result && (
+            <div className="space-y-8 text-center py-10">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${result.success ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                {result.success ? <RefreshCcw size={40} /> : <AlertCircle size={40} />}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold uppercase tracking-widest shadow-sm">
+                  {result.success ? 'Refund Successful' : 'Refund Failed'}
+                </h3>
+                <p className="text-[10px] text-muted uppercase tracking-widest mt-2 px-10">
+                  {result.success 
+                    ? `Successfully processed ${formatPrice(parseFloat(amount))} via ${paymentMethod}. The order status has been updated.` 
+                    : result.error || 'The payment gateway rejected the refund request.'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-8 bg-accent/5 border-t border-accent/10 flex justify-end gap-4">
+          {step === 1 && (
+            <>
+              <button 
+                onClick={onClose}
+                className="px-8 py-4 text-[10px] font-bold uppercase text-muted tracking-widest"
+              >
+                Cancel Staging
+              </button>
+              <button 
+                onClick={() => setStep(2)}
+                className="px-12 py-4 bg-ink text-paper text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-gold transition-all shadow-xl"
+              >
+                Authorize Refund
+              </button>
+            </>
+          )}
+
+          {step === 2 && !result && (
+            <button 
+              onClick={handleRefund}
+              className="px-12 py-4 bg-gold text-paper text-[10px] font-bold uppercase tracking-[0.3em] shadow-xl"
+              disabled={isProcessing}
+            >
+              {isProcessing ? 'PROCESSING...' : 'CONFIRM HANDSHAKE'}
+            </button>
+          )}
+
+          {step === 3 && (
+            <button 
+              onClick={onClose}
+              className="px-12 py-4 bg-ink text-paper text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-gold transition-all shadow-xl"
+            >
+              Close Ledger
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 const AddProductWizard = ({ onSave, onCancel, initialData }: { onSave: (p: Product) => void, onCancel: () => void, initialData?: Product }) => {
   const { formatPrice, categories } = useApp();
@@ -1163,11 +1324,12 @@ const ProductsTab = ({ products, setProducts }: any) => {
   );
 };
 
-const OrdersTab = ({ orders, setOrders, deleteOrder }: any) => {
+const OrdersTab = ({ orders, setOrders, deleteOrder, updateOrder }: any) => {
   const { formatPrice, formatOrderNumber } = useApp();
   const [expandedOrders, setExpandedOrders] = useState<string[]>([]);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [filter, setFilter] = useState('All Orders');
+  const statusOptions = ['All Orders', 'pending', 'processed', 'shipped', 'out-for-delivery', 'delivered'];
 
   const toggleExpand = (id: string) => {
     setExpandedOrders(prev => 
@@ -1197,7 +1359,7 @@ const OrdersTab = ({ orders, setOrders, deleteOrder }: any) => {
   };
 
   const updateTracking = (id: string, status: string) => {
-    setOrders(orders.map((o: any) => o.id === id ? { ...o, status } : o));
+    updateOrder(id, { status: status as any });
   };
 
   const handleDelete = async (id: string) => {
@@ -1215,25 +1377,30 @@ const OrdersTab = ({ orders, setOrders, deleteOrder }: any) => {
     }
   };
 
-  const statusOptions = ['All Orders', 'pending', 'processed', 'shipped', 'out-for-delivery', 'delivered'];
+  const [isRefundWizardOpen, setIsRefundWizardOpen] = useState(false);
+  const [selectedOrderForRefund, setSelectedOrderForRefund] = useState<Order | null>(null);
+
+  const handleOpenRefund = (order: Order) => {
+    setSelectedOrderForRefund(order);
+    setIsRefundWizardOpen(true);
+  };
 
   return (
     <div className="space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-accent/10 p-4 lg:p-8 rounded-lg gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-accent/10 p-4 lg:p-8 rounded-none gap-6 shadow-sm">
            <div>
               <h1 className="text-2xl font-sans font-bold mb-1 tracking-tight">Order Management</h1>
               <p className="text-muted text-[10px] uppercase tracking-[0.2em] font-bold">Logistics & Fullfillment Control</p>
            </div>
            <div className="flex flex-wrap items-center gap-4">
-               <button className="bg-accent/10 hover:bg-accent/10 p-3 rounded text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all">
+               <button className="bg-accent/10 hover:bg-accent/20 p-3 rounded-none text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all">
                   <Download size={14} />
                   Export
                </button>
-               <button className="bg-accent/10 hover:bg-accent/10 p-3 rounded text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all">
+               <button className="bg-accent/10 hover:bg-accent/20 p-3 rounded-none text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all">
                   <Printer size={14} />
                   Manifest
                </button>
-               <div className="h-10 w-px bg-accent/10 hidden md:block" />
                <div className="min-w-[180px]">
                 <AdminDropdown 
                   value={filter}
@@ -1260,7 +1427,7 @@ const OrdersTab = ({ orders, setOrders, deleteOrder }: any) => {
            </div>
         </div>
 
-        <div className="bg-paper rounded-lg overflow-hidden">
+        <div className="bg-paper rounded-none overflow-hidden shadow-xl">
            <div className="block md:hidden divide-y divide-white/5">
               {orders.filter((o: any) => filter === 'All Orders' || o.status === filter).map((o: any) => (
                 <div key={o.id} className="p-6 space-y-4" onClick={() => toggleExpand(o.id)}>
@@ -1410,14 +1577,38 @@ const OrdersTab = ({ orders, setOrders, deleteOrder }: any) => {
                                 </div>
 
                                <div className="space-y-6">
-                                  <div className="flex justify-between items-center">
-                                     <h4 className="text-[9px] uppercase tracking-[0.4em] font-bold text-gold/60">Update Staging</h4>
-                                     <div className="flex gap-4">
-                                        <button className="text-[9px] font-bold uppercase text-muted hover:text-ink hover:underline">Issue Refund</button>
-                                        <button onClick={() => handleDelete(o.id)} className="text-[9px] font-bold uppercase text-red-500 hover:underline">Delete Order</button>
-                                     </div>
-                                  </div>
-                                  <div className="grid grid-cols-1 gap-3">
+                                   <div className="flex justify-between items-center">
+                                      <h4 className="text-[9px] uppercase tracking-[0.4em] font-bold text-gold/60">Logistics & Stage</h4>
+                                      <div className="flex gap-4">
+                                         <button 
+                                            onClick={(e) => { e.stopPropagation(); handleOpenRefund(o); }}
+                                            className="text-[9px] font-bold uppercase text-muted hover:text-ink hover:underline"
+                                          >
+                                            Issue Refund
+                                          </button>
+                                         <button onClick={() => handleDelete(o.id)} className="text-[9px] font-bold uppercase text-red-500 hover:underline">Delete Order</button>
+                                      </div>
+                                   </div>
+                                   
+                                   <div className="space-y-4">
+                                      <div className="relative">
+                                        <input 
+                                          type="text"
+                                          placeholder="CARRIER TRACKING NO."
+                                          defaultValue={o.trackingNumber}
+                                          onBlur={(e) => {
+                                            if (e.target.value && e.target.value !== o.trackingNumber) {
+                                              updateOrder(o.id, { 
+                                                trackingNumber: e.target.value,
+                                                status: o.status === 'pending' ? 'shipped' : o.status
+                                              });
+                                            }
+                                          }}
+                                          className="w-full bg-accent/20 p-4 rounded-none text-[10px] font-bold uppercase tracking-widest outline-none focus:ring-1 focus:ring-gold/30 transition-all placeholder:text-muted/30 shadow-inner"
+                                        />
+                                      </div>
+
+                                      <div className="grid grid-cols-1 gap-3">
                                      {['pending', 'processed', 'shipped', 'out-for-delivery', 'delivered'].map((st) => (
                                        <button 
                                           key={st}
@@ -1433,7 +1624,8 @@ const OrdersTab = ({ orders, setOrders, deleteOrder }: any) => {
                                      ))}
                                   </div>
                                </div>
-                            </motion.div>
+                            </div>
+                         </motion.div>
                          </td>
                       </tr>
                     )}
@@ -1442,6 +1634,13 @@ const OrdersTab = ({ orders, setOrders, deleteOrder }: any) => {
               </tbody>
            </table>
         </div>
+        
+        {isRefundWizardOpen && selectedOrderForRefund && (
+          <RefundWizard 
+            order={selectedOrderForRefund} 
+            onClose={() => setIsRefundWizardOpen(false)} 
+          />
+        )}
     </div>
     </div>
   );
@@ -1899,7 +2098,7 @@ const PoliciesTab = () => {
                     <motion.div 
                       key={p.type} 
                       layoutId={p.type}
-                      className="bg-paper p-8 flex flex-col space-y-6 shadow-xl border border-white/5"
+                      className="bg-paper p-8 flex flex-col space-y-6 shadow-2xl"
                     >
                         <div className="flex justify-between items-start">
                             <div className="flex flex-col">

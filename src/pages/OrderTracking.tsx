@@ -27,11 +27,13 @@ export const OrderTracking: React.FC<{ initialOrderId?: string, onMyOrdersClick?
     const local = orders.find(o => 
       o.id.toLowerCase() === query.toLowerCase() || 
       (o.orderNumber && `LG-${o.orderNumber}` === query) ||
-      (o.orderNumber && `#LG-${o.orderNumber}` === query)
+      (o.orderNumber && `#LG-${o.orderNumber}` === query) ||
+      (o.trackingNumber && o.trackingNumber.toUpperCase() === query.toUpperCase())
     );
 
     if (local) {
       setTrackedOrder(local);
+      setOrderId(formatOrderNumber(local.orderNumber)); // Ensure search bar shows LG number
       setIsSearching(false);
       return;
     }
@@ -51,9 +53,9 @@ export const OrderTracking: React.FC<{ initialOrderId?: string, onMyOrdersClick?
       if (isUuid) {
         dbQuery = dbQuery.eq('id', query);
       } else if (!isNaN(parseInt(orderRef))) {
-        dbQuery = dbQuery.eq('order_number', parseInt(orderRef));
+        dbQuery = dbQuery.or(`order_number.eq.${parseInt(orderRef)},tracking_number.eq.${query}`);
       } else {
-        throw new Error('Invalid Reference Format');
+        dbQuery = dbQuery.eq('tracking_number', query);
       }
 
       const { data: dbOrder, error: dbError } = await dbQuery.single();
@@ -62,7 +64,7 @@ export const OrderTracking: React.FC<{ initialOrderId?: string, onMyOrdersClick?
         throw new Error('Order not found');
       }
 
-      setTrackedOrder({
+      const orderObj = {
         id: dbOrder.id,
         orderNumber: dbOrder.order_number,
         customerId: dbOrder.profile_id,
@@ -70,12 +72,16 @@ export const OrderTracking: React.FC<{ initialOrderId?: string, onMyOrdersClick?
         total: parseFloat(dbOrder.total.toString()),
         status: dbOrder.status as any,
         createdAt: dbOrder.created_at,
+        trackingNumber: dbOrder.tracking_number,
         items: (dbOrder as any).order_items?.map((i: any) => ({
           productId: i.product_id,
           quantity: i.quantity,
           price: i.price
         })) || []
-      });
+      };
+
+      setTrackedOrder(orderObj);
+      setOrderId(formatOrderNumber(orderObj.orderNumber)); // Mask long tracking number in search bar
     } catch (err: any) {
       setTrackedOrder(null);
       setError('Order not found in our archive. Please verify your reference.');

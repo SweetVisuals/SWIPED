@@ -58,8 +58,18 @@ interface AppContextType {
   saveCoupon: (coupon: Coupon) => Promise<void>;
   deleteCoupon: (id: string) => Promise<void>;
   savePolicy: (policy: Policy) => Promise<void>;
-  createOrder: (orderData: { customer_name: string, customer_email: string, total: number, items: { product_id: string, quantity: number, price: number }[] }) => Promise<any | null>;
+  createOrder: (orderData: { 
+    customer_name: string; 
+    customer_email: string; 
+    total: number; 
+    items: { product_id: string, quantity: number, price: number }[];
+    stripe_payment_intent_id?: string;
+    paypal_order_id?: string;
+    payment_method_id?: string;
+  }) => Promise<any | null>;
+  updateOrder: (orderId: string, updates: Partial<Order>) => Promise<boolean>;
   deleteOrder: (orderId: string) => Promise<boolean>;
+  refundOrder: (orderId: string, amount?: number, reason?: string) => Promise<{ success: boolean; error?: string }>;
   formatOrderNumber: (num?: number) => string;
   isInitialLoading: boolean;
   isAdmin: boolean;
@@ -68,6 +78,7 @@ interface AppContextType {
   user: any | null;
   dropExpiry: Date;
   isDropActive: boolean;
+  liveVisitors: number;
 }
 
 
@@ -89,6 +100,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(INITIAL_SETTINGS);
   const [user, setUser] = useState<any>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [liveVisitors, setLiveVisitors] = useState(0);
 
   
   useEffect(() => {
@@ -127,6 +139,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Live Visitors Tracking via Presence
+  useEffect(() => {
+    const channel = supabase.channel('online-visitors', {
+      config: {
+        presence: {
+          key: 'visitor',
+        },
+      },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const newState = channel.presenceState();
+        const count = Object.keys(newState).reduce((acc, key) => {
+          return acc + newState[key].length;
+        }, 0);
+        setLiveVisitors(count);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, []);
   useEffect(() => {
     const initializeStore = async () => {
@@ -285,7 +328,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const { data: ordersData } = await supabase
             .from('orders')
             .select(`
-              id, profile_id, customer_name, total, status, created_at, order_number,
+              id, profile_id, customer_name, customer_email, total, status, created_at, order_number,
+              stripe_payment_intent_id, paypal_order_id, payment_method_id,
               order_items ( product_id, quantity, price )
             `)
             .order('created_at', { ascending: false });
@@ -297,9 +341,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               orderNumber: o.order_number,
               customerId: o.profile_id,
               customerName: o.customer_name || 'Anonymous',
+              customerEmail: o.customer_email || '',
               total: o.total,
               status: o.status as any,
               createdAt: o.created_at || '',
+              stripePaymentIntentId: o.stripe_payment_intent_id,
+              paypalOrderId: o.paypal_order_id,
+              paymentMethodId: o.payment_method_id,
               items: (o as any).order_items?.map((i: any) => ({
                 productId: i.product_id,
                 quantity: i.quantity,
@@ -327,7 +375,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const { data: ordersData } = await supabase
             .from('orders')
             .select(`
-              id, profile_id, customer_name, total, status, created_at, order_number,
+              id, profile_id, customer_name, customer_email, total, status, created_at, order_number,
+              stripe_payment_intent_id, paypal_order_id, payment_method_id,
               order_items ( product_id, quantity, price )
             `)
             .eq('profile_id', user.id)
@@ -339,9 +388,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               orderNumber: o.order_number,
               customerId: o.profile_id,
               customerName: o.customer_name || 'Anonymous',
+              customerEmail: o.customer_email || '',
               total: o.total,
               status: o.status as any,
               createdAt: o.created_at || '',
+              stripePaymentIntentId: o.stripe_payment_intent_id,
+              paypalOrderId: o.paypal_order_id,
+              paymentMethodId: o.payment_method_id,
               items: (o as any).order_items?.map((i: any) => ({
                 productId: i.product_id,
                 quantity: i.quantity,
@@ -787,7 +840,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           customer_name: orderData.customer_name,
           customer_email: orderData.customer_email,
           total: orderData.total,
-          status: 'pending'
+          status: 'pending',
+          stripe_payment_intent_id: orderData.stripe_payment_intent_id,
+          paypal_order_id: orderData.paypal_order_id,
+          payment_method_id: orderData.payment_method_id
         })
         .select()
         .single();
@@ -817,6 +873,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         total: parseFloat(order.total.toString()),
         status: order.status as any,
         createdAt: order.created_at,
+        customerEmail: order.customer_email,
+        stripePaymentIntentId: order.stripe_payment_intent_id,
+        paypalOrderId: order.paypal_order_id,
+        paymentMethodId: order.payment_method_id,
         items: orderData.items.map(i => ({
           productId: i.product_id,
           quantity: i.quantity,
@@ -837,7 +897,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
       }
 
-      return order;
+      return newOrder;
     } catch (error) {
       console.error('Error creating order:', error);
       return null;
@@ -853,10 +913,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return `#LG-${num}`;
   };
 
+  const updateOrder = async (orderId: string, updates: Partial<Order>) => {
+    try {
+      const dbUpdates: any = {};
+      if (updates.status) dbUpdates.status = updates.status;
+      if (updates.trackingNumber !== undefined) dbUpdates.tracking_number = updates.trackingNumber;
+
+      const { error } = await supabase
+        .from('orders')
+        .update(dbUpdates)
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates } : o));
+      return true;
+    } catch (error) {
+      console.error('Error updating order:', error);
+      return false;
+    }
+  };
+
   const deleteOrder = async (orderId: string) => {
     try {
-      // Order items are linked with ON DELETE CASCADE usually, but let's be safe or check if we need to delete them explicitly
-      // Actually let's just delete the order.
+      // Order items are linked with ON DELETE CASCADE usually
       const { error } = await supabase
         .from('orders')
         .delete()
@@ -872,16 +952,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+
+  const refundOrder = async (orderId: string, amount?: number, reason?: string) => {
+    try {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) throw new Error('Order not found');
+
+      const isStripe = !!order.stripePaymentIntentId;
+      const isPayPal = !!order.paypalOrderId;
+
+      if (!isStripe && !isPayPal) {
+         // Manual refund or test mode
+         await updateOrder(orderId, { status: 'cancelled' });
+         return { success: true };
+      }
+
+      // Call refund edge function
+      const { data, error } = await supabase.functions.invoke('process-refund', {
+        body: {
+          orderId,
+          stripePaymentIntentId: order.stripePaymentIntentId,
+          paypalOrderId: order.paypalOrderId,
+          amount: amount || order.total,
+          reason: reason || 'Requested by customer'
+        }
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || 'Refund processing failed');
+      }
+
+      // Update status to cancelled/refunded
+      await updateOrder(orderId, { status: 'cancelled' });
+      return { success: true };
+    } catch (err: any) {
+      console.error('Refund error:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
+
   return (
     <AppContext.Provider value={{
       products, orders, customers, paymentMethods, shippingRegions, taxRules, categories, coupons, policies, cart, isAdmin, isCustomerLoggedIn,
-      dropExpiry, isDropActive, storeSettings,
+      dropExpiry, isDropActive, storeSettings, liveVisitors,
       setProducts, setOrders, setPaymentMethods, setShippingRegions, setTaxRules, setCoupons, setPolicies, setStoreSettings,
       addToCart, removeFromCart, updateCartQuantity, clearCart,
       loginAsAdmin, logout, loginCustomer, logoutCustomer,
       updateStoreSettings, saveProduct, deleteProductFromDb, saveCategory, deleteCategory, formatPrice, user, signInWithGoogle,
       togglePaymentMethod, saveShippingRegion, deleteShippingRegion, saveTaxRule, deleteTaxRule, saveCoupon, deleteCoupon, savePolicy,
-      createOrder, deleteOrder, formatOrderNumber,
+      createOrder, updateOrder, deleteOrder, refundOrder, formatOrderNumber,
       isInitialLoading
     }}>
       {children}

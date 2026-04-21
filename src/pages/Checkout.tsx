@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, ChevronLeft, CreditCard, Ship, Lock, CheckCircle2, AlertCircle, ShieldCheck, Beaker, Clock, Copy, Package, Check } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { formatPrice as formatPriceUtil } from '../utils/format';
 import { supabase } from '../supabase';
@@ -17,7 +17,7 @@ import { AuthModal } from '../components/AuthModal';
 // Initialize Stripe outside component to avoid recreating it
 const stripePromise = loadStripe((import.meta as any).env.VITE_STRIPE_PUBLIC_KEY || '');
 
-const StripeCheckoutForm = ({ total, email, currency, onComplete, color, formatPrice, agreeTerms, agreeData, onShowError }: { total: number, email: string, currency: string, onComplete: () => void, color: string, formatPrice: (n: number) => string, agreeTerms: boolean, agreeData: boolean, onShowError: (show: boolean) => void }) => {
+const StripeCheckoutForm = ({ total, email, currency, onComplete, color, formatPrice, agreeTerms, agreeData, onShowError, clientSecret }: { total: number, email: string, currency: string, onComplete: (paymentIntentId: string) => void, color: string, formatPrice: (n: number) => string, agreeTerms: boolean, agreeData: boolean, onShowError: (show: boolean) => void, clientSecret: string }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState<string | null>(null);
@@ -39,25 +39,12 @@ const StripeCheckoutForm = ({ total, email, currency, onComplete, color, formatP
     setError(null);
     
     try {
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) throw new Error("Card element not found");
-
-      // 1. Create PaymentIntent via Edge Function
-      const currencyCode = currency === '£' ? 'gbp' : (currency === '$' ? 'usd' : 'eur');
-      const { data, error: funcError } = await supabase.functions.invoke('stripe-payment', {
-        body: { amount: total, currency: currencyCode, email: email }
-      });
-
-      if (funcError || !data?.clientSecret) {
-        throw new Error(data?.error || "Failed to initialize payment session");
-      }
-
-      // 2. Confirm Payment
-      const { paymentIntent, error: stripeError } = await stripe.confirmCardPayment(data.clientSecret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: { email }
-        }
+      const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/checkout-complete`,
+        },
+        redirect: 'if_required'
       });
 
       if (stripeError) {
@@ -66,7 +53,7 @@ const StripeCheckoutForm = ({ total, email, currency, onComplete, color, formatP
 
       if (paymentIntent?.status === 'succeeded') {
         setProcessing(false);
-        onComplete();
+        onComplete(paymentIntent.id);
       } else {
         throw new Error("Payment authorization incomplete");
       }
@@ -90,22 +77,20 @@ const StripeCheckoutForm = ({ total, email, currency, onComplete, color, formatP
       </div>
       
       <div className="space-y-4">
-        <label className="block text-[9px] uppercase tracking-[0.3em] font-bold text-ink/40">Secure Payment Entry</label>
+        <label className="block text-[9px] uppercase tracking-[0.3em] font-bold text-ink/40">Secure Payment Portal</label>
         <div className="group transition-all duration-500">
           <div className="p-3 md:p-5 bg-paper shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)] focus-within:bg-paper focus-within:shadow-[inset_0_2px_20px_rgba(0,0,0,0.08)] transition-all duration-300">
-             <CardElement options={{ 
-                style: { 
-                  base: { 
-                    fontSize: '16px', 
-                    color: color, 
-                    fontFamily: '"Inter", system-ui, sans-serif', 
-                    letterSpacing: '0.025em',
-                    '::placeholder': { color: color + '99' },
-                    iconColor: color
-                  },
-                  invalid: { color: '#b91c1c', iconColor: '#b91c1c' }
-                } 
-             }} />
+             <PaymentElement options={{ 
+                layout: 'tabs',
+                theme: 'none' as any,
+                style: {
+                   base: {
+                      fontSize: '16px',
+                      color: color,
+                      fontFamily: '"Inter", system-ui, sans-serif',
+                   }
+                }
+             } as any} />
           </div>
         </div>
       </div>
@@ -131,10 +116,12 @@ const StripeCheckoutForm = ({ total, email, currency, onComplete, color, formatP
         <div className="absolute inset-0 bg-paper/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12" />
       </button>
       
-      <div className="flex justify-center gap-6 opacity-30 grayscale hover:grayscale-0 transition-all duration-500">
-        <div className="text-[8px] font-bold tracking-widest uppercase">Visa</div>
-        <div className="text-[8px] font-bold tracking-widest uppercase">Mastercard</div>
-        <div className="text-[8px] font-bold tracking-widest uppercase">Amex</div>
+      <div className="flex justify-center gap-4 opacity-30 grayscale hover:grayscale-0 transition-all duration-500 items-center">
+        <div className="text-[8px] font-bold tracking-widest uppercase">Digital Wallets</div>
+        <div className="w-1 h-1 bg-ink/20 rounded-full" />
+        <div className="text-[8px] font-bold tracking-widest uppercase">Cards</div>
+        <div className="w-1 h-1 bg-ink/20 rounded-full" />
+        <div className="text-[8px] font-bold tracking-widest uppercase">Global Pay</div>
       </div>
     </motion.form>
   );
@@ -183,6 +170,10 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
   const [promoCode, setPromoCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponError, setCouponError] = useState('');
+  const [existingActiveSubscription, setExistingActiveSubscription] = useState<any>(null);
+  const [checkingSubscription, setCheckingSubscription] = useState(false);
+  const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
+  const [isFetchingSecret, setIsFetchingSecret] = useState(false);
 
   const enabledPayments = [...paymentMethods.filter(p => p.enabled)].sort((a, b) => {
     if (a.type === 'card') return -1;
@@ -199,6 +190,11 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
   }, [paymentMethods, selectedPaymentId, enabledPayments]);
 
   useEffect(() => {
+    // Reset Stripe secret when selection changes to avoid stale initialization
+    setStripeClientSecret(null);
+  }, [selectedPaymentId]);
+
+  useEffect(() => {
     // Only auto-redirect if logged in, otherwise stay on success page to let guest save order number
     if (isSuccess && onSuccessRedirect && isCustomerLoggedIn) {
       const timer = setTimeout(() => {
@@ -207,6 +203,37 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
       return () => clearTimeout(timer);
     }
   }, [isSuccess, onSuccessRedirect, isCustomerLoggedIn]);
+
+  useEffect(() => {
+    const checkActiveSubscription = async () => {
+      if (!user) return;
+      setCheckingSubscription(true);
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('profile_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+        
+        if (data) {
+          setExistingActiveSubscription(data);
+          // If they already have a subscription, uncheck the toggle
+          setIsSubscription(false);
+        }
+      } catch (err) {
+        console.error('Error checking subscription:', err);
+      } finally {
+        setCheckingSubscription(false);
+      }
+    };
+
+    if (isCustomerLoggedIn && user) {
+      checkActiveSubscription();
+    } else {
+      setExistingActiveSubscription(null);
+    }
+  }, [isCustomerLoggedIn, user]);
 
   // Shipping Calculation
   const getSelectedRegion = () => {
@@ -250,6 +277,40 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
   const taxAmount = finalSubtotal * (taxRate / 100);
   const total = finalSubtotal + shippingPrice + taxAmount;
 
+  useEffect(() => {
+    const fetchStripeSecret = async () => {
+      const selectedMethod = paymentMethods.find(p => p.id === selectedPaymentId);
+      if (selectedMethod?.type === 'card' && total > 0 && customerInfo.email) {
+        setIsFetchingSecret(true);
+        try {
+          const currencyCode = storeSettings.currency === '£' ? 'gbp' : (storeSettings.currency === '$' ? 'usd' : 'eur');
+          const { data, error } = await supabase.functions.invoke('stripe-payment', {
+            body: { 
+              amount: total, 
+              currency: currencyCode, 
+              email: customerInfo.email,
+              isSubscription: false 
+            }
+          });
+          if (data?.clientSecret) {
+            setStripeClientSecret(data.clientSecret);
+          }
+        } catch (err) {
+          console.error('Error fetching Stripe secret:', err);
+        } finally {
+          setIsFetchingSecret(false);
+        }
+      }
+    };
+
+    if (selectedPaymentId && paymentMethods.find(p => p.id === selectedPaymentId)?.type === 'card') {
+      fetchStripeSecret();
+    }
+  }, [selectedPaymentId, total, customerInfo.email, storeSettings.currency]);
+
+  // Shipping Calculation
+
+
   const handleApplyPromo = () => {
     setCouponError('');
     const coupon = coupons.find(c => c.code.toLowerCase() === promoCode.toLowerCase() && c.active);
@@ -277,6 +338,12 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
     }
     setShowError(false);
     
+    // For Subscriptions, we use Stripe Checkout Session for production readiness
+    if (isSubscription && selectedPaymentId && paymentMethods.find(p => p.id === selectedPaymentId)?.type === 'card') {
+       handleSubscriptionRedirect();
+       return;
+    }
+
     setIsProcessing(true);
     // Simulate init for generic flows
     setTimeout(() => {
@@ -285,19 +352,52 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
     }, 1500);
   };
 
-  const handleApproveAuth = async () => {
+  const handleSubscriptionRedirect = async () => {
+    setIsProcessing(true);
+    try {
+      const currencyCode = storeSettings.currency === '£' ? 'gbp' : (storeSettings.currency === '$' ? 'usd' : 'eur');
+      
+      const { data, error } = await supabase.functions.invoke('stripe-payment', {
+        body: { 
+          email: customerInfo.email,
+          isSubscription: true,
+          interval: subscriptionInterval,
+          items: cart.map(item => ({ id: item.id, quantity: item.quantity })),
+          currency: currencyCode,
+          successUrl: `${window.location.origin}/checkout/success`,
+          cancelUrl: window.location.origin
+        }
+      });
+
+      if (error || !data?.url) throw new Error(data?.error || 'Failed to create subscription session');
+      
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (err: any) {
+      console.error('Subscription error:', err);
+      setIsError(true);
+      setErrorMessage(err.message || 'Failed to initialize subscription replenishment.');
+      setIsProcessing(false);
+    }
+  };
+
+  const handleApproveAuth = async (paymentDetails?: { stripe_payment_intent_id?: string, paypal_order_id?: string, payment_method_id?: string }) => {
     setIsProcessing(true);
     
     try {
+      const isTestPayment = paymentDetails?.payment_method_id && paymentMethods.find(p => p.id === paymentDetails.payment_method_id)?.type === 'test';
+      const finalOrderTotal = (isTestPayment && isSubscription) ? 0 : total;
+
       const orderResult = await createOrder({
         customer_name: `${customerInfo.firstName} ${customerInfo.lastName}`,
         customer_email: customerInfo.email,
-        total: total,
+        total: finalOrderTotal,
         items: cart.map(item => ({
           product_id: item.id,
           quantity: item.quantity,
           price: item.price
-        }))
+        })),
+        ...paymentDetails
       });
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -306,19 +406,42 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
         setCreatedOrder(orderResult);
         
         // 2. If subscription, record it
-        if (isSubscription && isCustomerLoggedIn) {
-          const nextDate = new Date();
-          nextDate.setDate(nextDate.getDate() + (subscriptionInterval === 'fortnightly' ? 14 : 30));
-          
-          await supabase
-            .from('subscriptions')
-            .insert({
-              profile_id: user.id,
-              interval: subscriptionInterval,
-              total: total,
-              status: 'active',
-              next_delivery_date: nextDate.toISOString()
-            });
+        if (isSubscription) {
+          try {
+            // Get fresh user to ensure we link to the right profile
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            const profileIdToUse = currentUser?.id || user?.id || (orderResult as any).customerId || (orderResult as any).profile_id;
+            
+            if (profileIdToUse) {
+              const nextDate = new Date();
+              nextDate.setDate(nextDate.getDate() + (subscriptionInterval === 'fortnightly' ? 14 : 30));
+              
+              const isTestPaymentMethod = paymentDetails?.payment_method_id && paymentMethods.find(p => p.id === paymentDetails.payment_method_id)?.type === 'test';
+              const subscriptionTotal = isTestPaymentMethod ? 0 : total;
+
+              console.log('Attempting subscription creation for:', profileIdToUse);
+              const { data: subData, error: subError } = await supabase
+                .from('subscriptions')
+                .insert({
+                  profile_id: profileIdToUse,
+                  interval: subscriptionInterval,
+                  total: subscriptionTotal,
+                  status: 'active',
+                  next_delivery_date: nextDate.toISOString()
+                })
+                .select();
+
+              if (subError) {
+                console.error('Subscription DB Error:', subError);
+              } else {
+                console.log('Subscription recorded successfully:', subData);
+              }
+            } else {
+              console.warn('Subscription recording skipped: No profile ID resolved');
+            }
+          } catch (err) {
+            console.error('Subscription logic exception:', err);
+          }
         }
 
         setIsProcessing(false);
@@ -583,27 +706,41 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
               <div className="space-y-4">
                  <div className={`transition-all rounded-none shadow-sm ${isSubscription ? 'bg-accent/10 shadow-xl' : 'bg-accent/5'}`}>
                     <button 
-                      onClick={() => setIsSubscription(!isSubscription)}
+                      onClick={() => {
+                        if (!existingActiveSubscription) {
+                          setIsSubscription(!isSubscription);
+                        }
+                      }}
+                      disabled={!!existingActiveSubscription}
                       className={`w-full flex justify-between items-center px-4 md:px-8 py-6 transition-all rounded-none ${
                         isSubscription ? 'bg-ink text-paper shadow-xl' : 'hover:bg-accent/10'
-                      }`}
+                      } ${existingActiveSubscription ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                        <div className="flex items-center gap-4">
                           <div className={`w-4 h-4 rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)] ${isSubscription ? 'bg-paper shadow-none' : 'bg-paper/50'} flex items-center justify-center`}>
                             {isSubscription && <div className="w-2 h-2 bg-ink rounded-full" />}
+                            {existingActiveSubscription && <Check size={10} className="text-emerald-500" />}
                           </div>
                           <div className="text-left">
-                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold block">Subscribe & Save</span>
-                            <span className="text-[8px] uppercase tracking-widest opacity-50 block mt-1">Automated order delivered to your atelier</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold block">
+                              {existingActiveSubscription ? 'Active Subscription Secured' : 'Subscribe & Save'}
+                            </span>
+                            <span className="text-[8px] uppercase tracking-widest opacity-50 block mt-1">
+                              {existingActiveSubscription 
+                                ? `Already enrolled in ${existingActiveSubscription.interval} replenishment`
+                                : 'Automated order delivered to your atelier'}
+                            </span>
                           </div>
                        </div>
                        <div className="text-right">
-                          <span className={`text-[10px] font-mono font-bold italic ${isSubscription ? 'text-paper' : 'text-gold'}`}>Up to 15% Savings</span>
+                          <span className={`text-[10px] font-mono font-bold italic ${isSubscription ? 'text-paper' : 'text-gold'}`}>
+                            {existingActiveSubscription ? 'Priority Status Active' : 'Up to 15% Savings'}
+                          </span>
                        </div>
                     </button>
 
                     <AnimatePresence>
-                      {isSubscription && (
+                      {isSubscription && !existingActiveSubscription && (
                         <motion.div 
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -636,11 +773,19 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
                         </motion.div>
                       )}
                     </AnimatePresence>
+                    
+                    {existingActiveSubscription && (
+                       <div className="px-8 pb-8 pt-2">
+                          <p className="text-[9px] text-emerald-700/60 font-bold uppercase tracking-widest">
+                             Note: You may only maintain one active replenishment cycle at a time to ensure exclusive priority remains available for all atelier members.
+                          </p>
+                       </div>
+                    )}
                  </div>
               </div>
             </section>
 
-            <section id="requirement-agreements" className="space-y-8 bg-accent/5 p-8 shadow-inner border-l-2 border-gold/20">
+            <section id="requirement-agreements" className="space-y-8 bg-accent/5 p-8 shadow-inner">
                <div className="flex items-center gap-4 mb-2">
                   <Lock size={14} className="text-muted" />
                   <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-ink">Requirement Agreements</h3>
@@ -749,8 +894,11 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
                                  }}
                                  onApprove={async (data, actions) => {
                                    if (actions.order) {
-                                     await actions.order.capture();
-                                     handleApproveAuth(); // trigger success
+                                     const details = await actions.order.capture();
+                                     handleApproveAuth({ 
+                                       paypal_order_id: details.id, 
+                                       payment_method_id: selectedPaymentId || undefined 
+                                     });
                                    }
                                  }}
                                />
@@ -768,20 +916,58 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
                        )}
                        
                        {paymentMethods.find(p => p.id === selectedPaymentId)?.type === 'card' && (
-                         <Elements stripe={stripePromise}>
-                           <StripeCheckoutForm 
-                             total={total} 
-                             email={customerInfo.email}
-                             currency={storeSettings.currency}
-                             onComplete={handleApproveAuth} 
-                             color={storeSettings.colors.ink} 
-                             formatPrice={formatPrice}
-                             agreeTerms={agreeTerms}
-                             agreeData={agreeData}
-                             onShowError={setShowError}
-                           />
-                         </Elements>
-                       )}
+                          <div className="w-full">
+                            {isFetchingSecret ? (
+                              <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                                 <div className="w-8 h-8 border-2 border-ink/10 border-t-ink rounded-full animate-spin" />
+                                 <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-ink/40">Securing Payment Tunnel...</p>
+                              </div>
+                            ) : (stripeClientSecret && stripeClientSecret.startsWith('pi_')) ? (
+                               <Elements 
+                                 key={stripeClientSecret} 
+                                 stripe={stripePromise} 
+                                 options={{ 
+                                   clientSecret: stripeClientSecret,
+                                   appearance: {
+                                     theme: 'none',
+                                     variables: {
+                                       fontFamily: 'Inter, system-ui, sans-serif',
+                                       colorText: storeSettings.colors.ink,
+                                       colorBackground: storeSettings.colors.paper,
+                                     }
+                                   }
+                                 } as any}
+                               >
+                                 <StripeCheckoutForm 
+                                   total={total} 
+                                   email={customerInfo.email}
+                                   currency={storeSettings.currency}
+                                   onComplete={(piid) => handleApproveAuth({ 
+                                     stripe_payment_intent_id: piid, 
+                                     payment_method_id: selectedPaymentId || undefined 
+                                   })} 
+                                   color={storeSettings.colors.ink} 
+                                   formatPrice={formatPrice}
+                                   agreeTerms={agreeTerms}
+                                   agreeData={agreeData}
+                                   onShowError={setShowError}
+                                   clientSecret={stripeClientSecret}
+                                 />
+                               </Elements>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center py-10 text-center">
+                                 <AlertCircle size={24} className="text-muted mb-4 opacity-20" strokeWidth={1} />
+                                 <p className="text-[9px] text-muted max-w-xs leading-relaxed uppercase font-bold tracking-[0.3em]">
+                                    {total <= 0 
+                                      ? "Order Total must be greater than zero to initialize gateway"
+                                      : !customerInfo.email 
+                                        ? "Please provide your email address above to unlock secure payment methods."
+                                        : "Waiting for secure connection to Stripe..."}
+                                 </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                        {paymentMethods.find(p => p.id === selectedPaymentId)?.type === 'test' && (
                          <div className="flex flex-col items-center justify-center h-full text-center py-8 bg-amber-50">
@@ -987,12 +1173,16 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
                       <p className="text-[8px] uppercase font-bold tracking-widest text-muted mb-1">Merchant</p>
                       <p className="text-xs font-bold text-ink mb-4">Lash Glaze</p>
                       <p className="text-[8px] uppercase font-bold tracking-widest text-muted mb-1">Amount Due</p>
-                      <p className="text-2xl font-bold font-serif italic">{formatPrice(total)}</p>
+                      <p className="text-2xl font-bold font-serif italic">
+                         {selectedPaymentId && paymentMethods.find(p => p.id === selectedPaymentId)?.type === 'test' && isSubscription 
+                           ? formatPrice(0) 
+                           : formatPrice(total)}
+                       </p>
                     </div>
 
                     <div className="flex flex-col gap-3">
                        <button 
-                         onClick={handleApproveAuth}
+                         onClick={() => handleApproveAuth({ payment_method_id: selectedPaymentId || undefined })}
                          className="bg-ink text-paper py-5 text-[9px] font-bold uppercase tracking-[0.4em] hover:bg-ink/90 transition-all shadow-xl"
                        >
                          Verify Transaction

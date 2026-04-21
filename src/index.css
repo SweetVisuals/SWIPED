@@ -79,17 +79,18 @@
 
   /* Custom Checkbox */
   .luxe-checkbox {
-    @apply relative border-2 border-accent bg-paper transition-all duration-300 cursor-pointer overflow-hidden rounded-none flex-shrink-0;
-    width: 1.5rem;
-    height: 1.5rem;
+    @apply relative bg-accent/10 transition-all duration-300 cursor-pointer overflow-hidden rounded-none flex-shrink-0;
+    width: 2rem;
+    height: 2rem;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
   }
   
   .luxe-checkbox input {
-    @apply absolute opacity-0 w-0 h-0 cursor-pointer;
+    @apply absolute opacity-0 w-full h-full cursor-pointer z-10;
   }
   
   .luxe-checkbox-inner {
-    @apply w-full h-full flex items-center justify-center scale-0 transition-transform duration-300 bg-ink rounded-none;
+    @apply w-full h-full flex items-center justify-center scale-0 transition-transform duration-300 bg-gold rounded-none relative z-0;
   }
   
   .luxe-checkbox input:checked + .luxe-checkbox-inner {
@@ -97,6 +98,6 @@
   }
 
   .luxe-checkbox:hover {
-    @apply border-gold;
+    @apply bg-accent/30 shadow-lg;
   }
 }
