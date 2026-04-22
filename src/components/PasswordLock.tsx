@@ -30,11 +30,16 @@ export const PasswordLock: React.FC = () => {
         return;
       }
 
-      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      if (days > 0) {
+        setTimeLeft(`${days} DAYS ${hours}H ${minutes}M`);
+      } else {
+        setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      }
     };
 
     updateTimer();
@@ -100,7 +105,10 @@ export const PasswordLock: React.FC = () => {
             <div className="h-px w-12 bg-gold/20" />
             <div className="flex items-center gap-3 px-6 py-2 bg-gold/5 rounded-full border border-gold/10">
                <Lock size={14} className="text-gold" />
-               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold">Collection Staged</span>
+               <span className="text-[7px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-gold whitespace-nowrap">
+                 <span className="md:hidden">Collection Locked</span>
+                 <span className="hidden md:inline">Collection Staged</span>
+               </span>
             </div>
             <div className="h-px w-12 bg-gold/20" />
           </div>

@@ -93,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onAdminClick, onCart
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-4 w-48 bg-paper/90 backdrop-blur-3xl shadow-[0_30px_100px_rgba(0,0,0,0.2)] z-[120] flex flex-col font-sans rounded-3xl overflow-hidden border border-accent/10"
+                  className="absolute right-0 top-full mt-4 w-48 bg-paper shadow-[0_30px_100px_rgba(0,0,0,0.2)] z-[120] flex flex-col font-sans rounded-3xl overflow-hidden border border-accent/10"
                 >
                   {currencies.map((c) => (
                     <button 
@@ -125,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onAdminClick, onCart
                   initial={{ opacity: 0, scale: 0.95, y: 15 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                  className="absolute right-0 top-full mt-6 w-80 bg-paper/95 backdrop-blur-3xl shadow-[0_40px_100px_rgba(0,0,0,0.4)] z-[2100] flex flex-col font-sans rounded-[2rem] overflow-hidden border-none"
+                  className="absolute right-0 top-full mt-6 w-80 bg-paper shadow-[0_40px_100px_rgba(0,0,0,0.4)] z-[2100] flex flex-col font-sans rounded-[2rem] overflow-hidden border-none"
                 >
                     {isCustomerLoggedIn && (
                       <div className="p-8 bg-accent/5 border-none">
