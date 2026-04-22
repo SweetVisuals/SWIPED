@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onAdminClick, onCart
           onClick={onNavigate}
           className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center group"
         >
-          <span className="font-brand text-lg lg:text-2xl tracking-tight italic font-bold uppercase tracking-widest text-topbarText leading-none">SWIPED BY</span>
+          <span className="font-brand text-lg lg:text-xl font-black uppercase tracking-tight text-topbarText leading-none">SWIPED BY</span>
           <span className="text-[6px] lg:text-[8px] tracking-[0.5em] font-bold mt-1 opacity-40 uppercase leading-none text-topbarText">DONT ASK WHERE</span>
         </button>
 
@@ -206,7 +206,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onAdminClick, onCart
           >
             <div className="flex justify-between items-center mb-10">
                <div className="flex flex-col">
-                  <span className="font-brand text-lg text-topbarText italic font-bold uppercase tracking-widest leading-none">SWIPED BY</span>
+                  <span className="font-brand text-lg text-topbarText font-black uppercase tracking-tight leading-none">SWIPED BY</span>
                   <span className="text-[8px] tracking-[0.5em] font-bold opacity-40 uppercase leading-none mt-1 text-topbarText">DONT ASK WHERE</span>
                </div>
                <button className="text-topbarText p-3 bg-topbarText/5 rounded-full" onClick={() => setIsMenuOpen(false)}><X size={20} /></button>

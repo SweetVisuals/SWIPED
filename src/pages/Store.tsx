@@ -287,7 +287,7 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
                     <div className="space-y-4 px-4">
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-serif text-sm font-extrabold group-hover:text-gold transition-colors leading-none uppercase tracking-tighter truncate block flex-grow">{product.name}</h3>
+                          <h3 className="font-serif text-[13px] font-black group-hover:text-gold transition-colors leading-none uppercase tracking-tight truncate block flex-grow">{product.name}</h3>
                           {(() => {
                             const now = new Date();
                             const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;

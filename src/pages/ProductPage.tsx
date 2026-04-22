@@ -141,7 +141,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
                        initial={{ opacity: 0, y: 20 }}
                        animate={{ opacity: 1, y: 0 }}
                        transition={{ delay: 0.1 }}
-                       className="text-2xl md:text-3xl lg:text-5xl font-serif font-extrabold text-ink leading-none uppercase tracking-tighter"
+                       className="text-2xl md:text-3xl lg:text-4xl font-serif font-black text-ink leading-none uppercase tracking-tight"
                      >
                        {product.name}
                      </motion.h1>
