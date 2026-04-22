@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Clock, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Clock, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
 import { Product } from '../types';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { ProductFilter } from '../components/ProductFilter';
@@ -18,6 +18,7 @@ interface StoreProps {
 export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
   const { products, formatPrice, storeSettings, isAdmin } = useApp();
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   return (
     <div className="pb-32 bg-paper selection:bg-gold selection:text-paper">
@@ -139,12 +140,66 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
       {/* Product Feed */}
       <section id="collection" className="max-w-7xl mx-auto px-8 md:px-16 py-20">
         <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
-          <ProductFilter 
-            products={products} 
-            onFilterChange={setFilteredProducts}
-            formatPrice={(amount) => formatPrice(amount)}
-            isAdmin={isAdmin}
-          />
+          {/* Desktop Filter Sidebar */}
+          <div className="hidden lg:block">
+            <ProductFilter 
+              products={products} 
+              onFilterChange={setFilteredProducts}
+              formatPrice={(amount) => formatPrice(amount)}
+              isAdmin={isAdmin}
+            />
+          </div>
+
+          {/* Mobile Filter Toggle */}
+          <div className="lg:hidden w-full mb-8">
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setIsFilterOpen(true)}
+              className="w-full py-6 bg-accent/5 rounded-[2rem] flex items-center justify-center gap-4 text-[11px] font-black uppercase tracking-[0.4em] text-ink hover:bg-accent/10 transition-all border-none"
+            >
+              <SlidersHorizontal size={16} className="text-gold" />
+              Refine Collection
+            </motion.button>
+          </div>
+
+          {/* Mobile Filter Sidebar Drawer */}
+          <AnimatePresence>
+            {isFilterOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsFilterOpen(false)}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[3000] lg:hidden"
+                />
+                <motion.div
+                  initial={{ x: '-100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '-100%' }}
+                  transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                  className="fixed inset-y-0 left-0 w-full max-w-sm bg-paper z-[3001] shadow-2xl lg:hidden overflow-y-auto no-scrollbar p-8"
+                >
+                  <div className="flex items-center justify-between mb-12">
+                    <h3 className="font-display text-2xl font-black uppercase tracking-tighter">Refinement</h3>
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setIsFilterOpen(false)}
+                      className="p-4 bg-accent/5 rounded-2xl border-none"
+                    >
+                      <X size={20} />
+                    </motion.button>
+                  </div>
+                  <ProductFilter 
+                    products={products} 
+                    onFilterChange={setFilteredProducts}
+                    formatPrice={(amount) => formatPrice(amount)}
+                    isAdmin={isAdmin}
+                  />
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
 
           <div className="flex-grow w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">
@@ -232,7 +287,7 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
                     <div className="space-y-4 px-4">
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-display text-xl font-black group-hover:text-gold transition-colors leading-[0.9] uppercase tracking-tighter truncate block flex-grow">{product.name}</h3>
+                          <h3 className="font-serif text-2xl italic font-medium group-hover:text-gold transition-colors leading-[0.9] uppercase tracking-normal truncate block flex-grow">{product.name}</h3>
                           {(() => {
                             const now = new Date();
                             const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
@@ -261,12 +316,12 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
                             if (currentPrice < product.price) {
                               return (
                                 <div className="flex items-baseline gap-3">
-                                  <span className="text-lg text-ink font-black tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(currentPrice)}</span>
+                                  <span className="text-xl text-ink font-serif italic font-medium tracking-normal tabular-nums whitespace-nowrap">{formatPrice(currentPrice)}</span>
                                   <span className="text-[10px] text-muted line-through opacity-30 font-black tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>
                                 </div>
                               );
                             }
-                            return <span className="text-lg text-ink font-black tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>;
+                            return <span className="text-xl text-ink font-serif italic font-medium tracking-normal tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>;
                           })()}
                         </div>
                       </div>

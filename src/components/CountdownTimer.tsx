@@ -63,20 +63,20 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiry, variant 
 
   if (variant === 'inline') {
     return (
-      <div className="flex bg-transparent items-center gap-4">
-        <div className="flex items-center gap-2">
-           <span className="text-ink text-sm font-bold tracking-tighter tabular-nums">{timeLeft.days.toString().padStart(2, '0')}</span>
-           <span className="text-muted text-[8px] uppercase tracking-widest cursor-default">D</span>
+      <div className="flex bg-transparent items-center gap-3 md:gap-5">
+        <div className="flex items-center gap-1.5 md:gap-2">
+           <span className="text-ink text-base md:text-sm font-black tracking-tighter tabular-nums">{timeLeft.days.toString().padStart(2, '0')}</span>
+           <span className="text-muted text-[7px] md:text-[8px] uppercase tracking-widest font-black opacity-40">D</span>
         </div>
-        <div className="w-1 h-1 bg-gold/30 rounded-full" />
-        <div className="flex items-center gap-2">
-           <span className="text-ink text-sm font-bold tracking-tighter tabular-nums">{timeLeft.hours.toString().padStart(2, '0')}</span>
-           <span className="text-muted text-[8px] uppercase tracking-widest cursor-default">H</span>
+        <div className="w-1 h-1 bg-gold/30 rounded-full shrink-0" />
+        <div className="flex items-center gap-1.5 md:gap-2">
+           <span className="text-ink text-base md:text-sm font-black tracking-tighter tabular-nums">{timeLeft.hours.toString().padStart(2, '0')}</span>
+           <span className="text-muted text-[7px] md:text-[8px] uppercase tracking-widest font-black opacity-40">H</span>
         </div>
-        <div className="w-1 h-1 bg-gold/30 rounded-full" />
-        <div className="flex items-center gap-2">
-           <span className="text-ink text-sm font-bold tracking-tighter tabular-nums">{timeLeft.minutes.toString().padStart(2, '0')}</span>
-           <span className="text-muted text-[8px] uppercase tracking-widest cursor-default">M</span>
+        <div className="w-1 h-1 bg-gold/30 rounded-full shrink-0" />
+        <div className="flex items-center gap-1.5 md:gap-2">
+           <span className="text-ink text-base md:text-sm font-black tracking-tighter tabular-nums">{timeLeft.minutes.toString().padStart(2, '0')}</span>
+           <span className="text-muted text-[7px] md:text-[8px] uppercase tracking-widest font-black opacity-40">M</span>
         </div>
       </div>
     );
@@ -97,7 +97,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiry, variant 
       <motion.div 
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="relative group h-16 w-80"
+        className="relative group h-16 w-full max-w-[320px]"
       >
         <div 
           className="relative h-full w-full flex items-center bg-paper/60 backdrop-blur-xl border-none shadow-[0_30px_60px_rgba(0,0,0,0.1)] overflow-hidden transition-all duration-500 hover:scale-[1.02] rounded-2xl cursor-default"

@@ -141,7 +141,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
                        initial={{ opacity: 0, y: 20 }}
                        animate={{ opacity: 1, y: 0 }}
                        transition={{ delay: 0.1 }}
-                       className="text-5xl lg:text-6xl font-black tracking-tighter text-ink leading-[0.9] uppercase"
+                       className="text-4xl md:text-5xl lg:text-7xl font-serif italic font-medium text-ink leading-[0.85] uppercase tracking-wide"
                      >
                        {product.name}
                      </motion.h1>
@@ -154,7 +154,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
                     className="flex items-center gap-10"
                   >
                      <div className="flex flex-col">
-                        <span className="text-5xl font-black tracking-tighter text-ink tabular-nums">
+                        <span className="text-4xl md:text-5xl font-serif italic font-medium text-ink tabular-nums">
                           {formatPrice(currentPrice)}
                         </span>
                      </div>
@@ -171,7 +171,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
                <motion.div 
                  initial={{ opacity: 0, scale: 0.98 }}
                  animate={{ opacity: 1, scale: 1 }}
-                 className="flex items-center justify-between p-6 bg-accent/5 rounded-3xl"
+                 className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 md:p-8 bg-accent/5 rounded-[2.5rem]"
                >
                   <div className="flex flex-col gap-1">
                     <span className={`text-[9px] font-black uppercase tracking-[0.3em] ${isPreOrderActive ? 'text-preOrder' : (isLimitedTimeActive ? 'text-limitedTime' : 'text-ink')}`}>
@@ -180,8 +180,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
                     <span className="text-[10px] text-muted font-bold tracking-tight opacity-50">Free Express Shipping</span>
                   </div>
                   {activeTimerTarget && (
-                    <div className="flex items-center gap-4 bg-paper/50 backdrop-blur px-4 py-2 rounded-2xl shadow-sm border border-white/20">
-                      <Clock size={14} className="opacity-30" />
+                    <div className="flex items-center gap-4 bg-paper/50 backdrop-blur-md px-6 py-3 rounded-2xl shadow-sm w-full sm:w-auto justify-center sm:justify-start">
+                      <Clock size={14} className="opacity-30 text-gold" />
                       <CountdownTimer expiry={activeTimerTarget} variant="inline" />
                     </div>
                   )}
@@ -237,7 +237,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
                   </div>
 
                   <div className="space-y-8">
-                    <p className="text-sm text-muted/80 leading-relaxed font-medium border-l-2 border-gold/20 pl-6">
+                    <p className="text-[11px] md:text-sm text-muted/80 leading-relaxed font-medium border-l-2 border-gold/20 pl-6">
                       {product.description}
                     </p>
                   </div>

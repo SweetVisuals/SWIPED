@@ -18,9 +18,6 @@ export const Footer: React.FC = () => {
           <div className="flex flex-col mb-10">
             <span className="font-serif text-3xl italic font-bold uppercase tracking-widest leading-none">SWIPED BY</span>
             <span className="text-[10px] tracking-[0.5em] font-bold opacity-40 uppercase leading-none mt-2 text-ink">DONT ASK WHERE</span>
-            <p className="text-[10px] text-muted mt-8 uppercase tracking-[0.2em] font-bold leading-relaxed max-w-[200px]">
-              The destination for high-performance mobile hardware and accessories.
-            </p>
           </div>
           <div className="flex gap-8 mt-12">
             {storeSettings.instagramUrl && (
