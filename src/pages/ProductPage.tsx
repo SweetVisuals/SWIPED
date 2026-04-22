@@ -141,7 +141,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
                        initial={{ opacity: 0, y: 20 }}
                        animate={{ opacity: 1, y: 0 }}
                        transition={{ delay: 0.1 }}
-                       className="text-xl md:text-2xl lg:text-3xl font-serif font-extrabold text-ink leading-tight uppercase tracking-tighter"
+                       className="text-2xl md:text-3xl lg:text-5xl font-serif font-extrabold text-ink leading-none uppercase tracking-tighter"
                      >
                        {product.name}
                      </motion.h1>
@@ -154,7 +154,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
                     className="flex items-center gap-10"
                   >
                      <div className="flex flex-col">
-                        <span className="text-xl md:text-2xl font-serif font-extrabold text-ink tabular-nums tracking-tighter">
+                        <span className="text-xl md:text-2xl font-mono font-semibold text-ink tabular-nums tracking-tight">
                           {formatPrice(currentPrice)}
                         </span>
                      </div>
