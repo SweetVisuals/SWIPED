@@ -1377,7 +1377,7 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
                 )}
                 <div className="flex justify-between text-ink p-6 bg-ink/5 mt-6 shadow-inner">
                    <span className="text-xs uppercase tracking-[0.4em] font-bold">Total Due</span>
-                   <span className="text-2xl font-serif italic font-medium">{formatPrice(total)}</span>
+                   <span className="text-2xl font-serif italic font-extrabold tracking-tighter">{formatPrice(total)}</span>
                 </div>
               </div>
 
