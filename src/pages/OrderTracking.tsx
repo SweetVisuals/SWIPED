@@ -6,7 +6,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { motion } from 'motion/react';
-import { Package, Truck, CheckCircle2, Clock, MapPin, Search, Box, Loader2 } from 'lucide-react';
+import { Package, Truck, CheckCircle2, Clock, MapPin, Search, Box } from 'lucide-react';
+import { LoadingIcon } from '../components/LoadingIcon';
 import { supabase } from '../supabase';
 import { formatPrice as formatPriceUtil } from '../utils/format';
 
@@ -119,7 +120,7 @@ export const OrderTracking: React.FC<{ initialOrderId?: string, onMyOrdersClick?
       <div className="max-w-3xl mx-auto">
         <header className="text-center space-y-4 mb-20">
           <h1 className="font-serif text-5xl italic tracking-tight">Track Your Journey</h1>
-          <p className="text-[10px] uppercase tracking-[0.4em] text-muted font-bold">Lash Glaze Series Delivery Tracking</p>
+          <p className="text-[10px] uppercase tracking-[0.4em] text-muted font-bold">SWIPED BY Logistics & Delivery Tracking</p>
           
           <div className="pt-8">
             <button 
@@ -144,7 +145,7 @@ export const OrderTracking: React.FC<{ initialOrderId?: string, onMyOrdersClick?
             />
           </div>
           <button type="submit" disabled={isSearching} className="bg-ink text-paper px-12 py-6 text-[10px] uppercase tracking-[0.4em] font-bold hover:bg-gold hover:text-ink transition-all shadow-xl rounded-none disabled:opacity-50 flex items-center gap-3">
-            {isSearching ? <Loader2 size={14} className="animate-spin" /> : 'TRACK'}
+            {isSearching ? <LoadingIcon size={14} color="white" /> : 'TRACK'}
           </button>
         </form>
 

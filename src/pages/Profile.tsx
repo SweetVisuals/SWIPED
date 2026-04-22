@@ -5,7 +5,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { User, Package, MapPin, Shield, Zap, LogOut, ChevronRight, Loader2, Save, ShoppingBag, Clock } from 'lucide-react';
+import { User, Package, MapPin, Shield, Zap, LogOut, ChevronRight, Save, ShoppingBag, Clock } from 'lucide-react';
+import { LoadingIcon } from '../components/LoadingIcon';
 import { useApp } from '../context/AppContext';
 import { AuthModal } from '../components/AuthModal';
 import { supabase } from '../supabase';
@@ -41,12 +42,14 @@ interface ProfileProps {
 }
 
 export default function Profile({ onBack, onOrderClick }: ProfileProps) {
-  const { isCustomerLoggedIn, logoutCustomer, user, storeSettings, formatOrderNumber } = useApp();
+  const { 
+    isCustomerLoggedIn, logoutCustomer, user, storeSettings, 
+    formatOrderNumber, isAuthModalOpen, setIsAuthModalOpen,
+    orders: globalOrders
+  } = useApp();
   const formatPrice = (amount: number) => formatPriceUtil(amount, storeSettings.currency);
   
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [orders, setOrders] = useState<UserOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -83,19 +86,10 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
         .eq('id', user.id)
         .single();
 
-      if (profileError) throw profileError;
-      
-      setProfile(profileData);
-      setFullName(profileData.full_name || '');
-
-      const { data: ordersData, error: ordersError } = await supabase
-        .from('orders')
-        .select('*')
-        .or(`profile_id.eq.${user.id},customer_email.eq.${profileData.email}`)
-        .order('created_at', { ascending: false });
-
-      if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
+      if (profileData) {
+        setProfile(profileData);
+        setFullName(profileData.full_name || '');
+      }
 
       const { data: subsData, error: subsError } = await supabase
         .from('subscriptions')
@@ -184,7 +178,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center">
-        <Loader2 className="animate-spin text-gold" size={32} />
+        <LoadingIcon size={32} color="#D4AF37" />
       </div>
     );
   }
@@ -266,7 +260,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                          disabled={saving || fullName === profile?.full_name}
                          className="flex items-center justify-center gap-3 w-full py-5 bg-gold text-paper text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-white hover:text-ink transition-all disabled:opacity-30 shadow-xl group border-none"
                        >
-                          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} className="group-hover:scale-110 transition-transform" />}
+                          {saving ? <LoadingIcon size={14} /> : <Save size={14} className="group-hover:scale-110 transition-transform" />}
                           {saveSuccess ? 'PROFILE SECURED' : 'UPDATE IDENTITY'}
                        </button>
                     </form>
@@ -274,7 +268,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                  
                  <div className="grid grid-cols-2 gap-6 pt-10 bg-accent/5 -mx-4 px-4 pb-10">
                     <div className="text-center md:text-left">
-                       <p className="text-3xl font-serif italic">{orders.length}</p>
+                       <p className="text-3xl font-serif italic">{globalOrders.length}</p>
                        <p className="text-[8px] uppercase font-bold tracking-widest text-muted">Total Orders</p>
                     </div>
                     <div className="text-center md:text-left">
@@ -388,9 +382,9 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                     </div>
                  </div>
                  
-                 <div className="space-y-6 flex-grow">
-                    {orders.length > 0 ? (
-                      orders.map(order => (
+                  <div className="space-y-6 flex-grow">
+                    {globalOrders.length > 0 ? (
+                      globalOrders.map(order => (
                         <div 
                           key={order.id} 
                           onClick={() => onOrderClick?.(order.id)}
@@ -402,7 +396,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                               </div>
                               <div>
                                  <div className="flex items-center gap-3 mb-1">
-                                    <p className="text-xs font-bold uppercase tracking-widest">{formatOrderNumber(order.order_number)}</p>
+                                    <p className="text-xs font-bold uppercase tracking-widest">{formatOrderNumber(order.orderNumber)}</p>
                                     <span className={`text-[8px] px-3 py-1 font-bold uppercase tracking-widest shadow-inner ${
                                        order.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-500' :
                                        order.status === 'shipped' ? 'bg-gold/20 text-gold shadow-lg shadow-gold/5' :
@@ -413,7 +407,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                                     </span>
                                  </div>
                                  <p className="text-[9px] text-muted uppercase font-bold tracking-widest">
-                                    {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — {formatPrice(order.total)}
+                                    {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — {formatPrice(order.total)}
                                  </p>
                               </div>
                            </div>
@@ -428,7 +422,7 @@ export default function Profile({ onBack, onOrderClick }: ProfileProps) {
                     )}
                  </div>
 
-                 {orders.length > 0 && (
+                 {globalOrders.length > 0 && (
                    <button className="w-full mt-12 py-5 bg-accent/5 text-[10px] font-bold uppercase tracking-[0.4em] text-muted hover:text-ink hover:bg-accent/10 transition-all border-none">
                       Export Archive
                    </button>

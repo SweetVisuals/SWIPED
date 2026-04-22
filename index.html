@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>Lash Glaze Strip Lashes</title>
+    <title>Swiped By | Technology Boutique</title>
     <style>
       #loader-wrapper {
         position: fixed;
@@ -11,7 +11,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: #FDFCFB; /* Primary topbar color (matches --paper) */
+        background: #f8f8f8;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -25,85 +25,104 @@
         visibility: hidden;
       }
 
-      .eyelash-container {
-        width: 120px;
-        height: 80px;
-        color: #D4AF37; /* Gold lash color */
+      .phone-loader {
+        width: 60px;
+        height: 120px;
+        border: 3px solid #000000;
+        border-radius: 20px;
         position: relative;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        animation: float 3s ease-in-out infinite;
       }
 
-      .eyelash-svg {
+      .phone-loader::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 24px;
+        height: 8px;
+        background: #000000;
+        border-radius: 4px;
+        z-index: 2;
+      }
+
+      .scan-line {
+        position: absolute;
+        top: -10%;
+        left: 0;
+        width: 100%;
+        height: 20%;
+        background: linear-gradient(to bottom, transparent, #007AFF, transparent);
+        opacity: 0.5;
+        animation: scan 2s linear infinite;
+      }
+
+      .loading-bar {
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 70%;
+        height: 4px;
+        background: #f0f0f0;
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .loading-progress {
         width: 100%;
         height: 100%;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 1.5;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+        background: #007AFF;
+        transform: translateX(-100%);
+        animation: progress 2s infinite ease-in-out;
       }
 
-      .eyelash-svg path {
-        transition: all 0.5s ease;
+      @keyframes scan {
+        0% { top: -20%; }
+        100% { top: 120%; }
       }
 
-      .eye-arc {
-        stroke-dasharray: 200;
-        stroke-dashoffset: 200;
-        animation: draw 2s infinite ease-in-out;
+      @keyframes progress {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(0); }
+        100% { transform: translateX(100%); }
       }
 
-      .lash {
-        opacity: 0;
-        animation: fadeInLash 2s infinite ease-in-out;
-      }
-
-      .lash:nth-child(2) { animation-delay: 0.2s; }
-      .lash:nth-child(3) { animation-delay: 0.4s; }
-      .lash:nth-child(4) { animation-delay: 0.6s; }
-      .lash:nth-child(5) { animation-delay: 0.8s; }
-      .lash:nth-child(6) { animation-delay: 1.0s; }
-
-      @keyframes draw {
-        0% { stroke-dashoffset: 200; }
-        50% { stroke-dashoffset: 0; }
-        100% { stroke-dashoffset: -200; }
-      }
-
-      @keyframes fadeInLash {
-        0%, 100% { opacity: 0; transform: translateY(5px); }
-        50% { opacity: 1; transform: translateY(0); }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
       }
 
       .loader-text {
-        margin-top: 20px;
-        font-family: 'Playfair Display', serif;
-        font-size: 16px;
-        letter-spacing: 0.6em;
+        margin-top: 40px;
+        font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.5em;
         text-transform: uppercase;
-        color: #1A1A1A;
-        font-weight: 400;
-        animation: textLetterSpacing 3s infinite ease-in-out;
+        color: #000000;
+        font-weight: 800;
+        animation: breathe 2s infinite ease-in-out;
       }
 
-      @keyframes textLetterSpacing {
-        0%, 100% { letter-spacing: 0.6em; opacity: 0.5; }
-        50% { letter-spacing: 0.8em; opacity: 1; }
+      @keyframes breathe {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.8; }
       }
     </style>
   </head>
   <body>
     <div id="loader-wrapper">
-      <div class="eyelash-container">
-        <svg viewBox="0 0 100 60" class="eyelash-svg">
-          <path class="eye-arc" d="M15,40 Q50,15 85,40" />
-          <path class="lash" d="M22,35 L15,25" />
-          <path class="lash" d="M35,28 L30,15" />
-          <path class="lash" d="M50,25 L50,10" />
-          <path class="lash" d="M65,28 L70,15" />
-          <path class="lash" d="M78,35 L85,25" />
-        </svg>
+      <div class="phone-loader">
+        <div class="scan-line"></div>
+        <div class="loading-bar">
+          <div class="loading-progress"></div>
+        </div>
       </div>
-      <div class="loader-text">Lash Glaze</div>
+      <div class="loader-text">Swiping In</div>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

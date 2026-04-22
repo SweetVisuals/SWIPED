@@ -13,7 +13,7 @@ import {
   Eye, Percent, ShoppingBag, Users2, Activity, RefreshCcw,
   Menu, X, Lock, Globe, Bell, Shield, Key,
   Tag, FileText, Hash, Printer, Download, Globe2, AlertCircle, Clock,
-  GripVertical
+  GripVertical, Copy
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { 
@@ -87,7 +87,7 @@ export const AdminDashboard: React.FC<{ onNavigateBack: () => void }> = ({ onNav
           style={{ backgroundColor: `${theme.accent}B3` }}
         >
           <div className="flex flex-col items-center">
-            <span className="font-serif text-4xl italic font-bold uppercase tracking-widest text-gold leading-none" style={{ color: theme.gold }}>Lash Glaze</span>
+            <span className="font-serif text-4xl italic font-bold uppercase tracking-widest text-gold leading-none" style={{ color: theme.gold }}>SWIPED BY</span>
             <span className="text-[10px] tracking-[0.4em] font-bold opacity-40 uppercase leading-none mt-2" style={{ color: theme.ink }}>Strip Lashes</span>
           </div>
           
@@ -161,7 +161,7 @@ export const AdminDashboard: React.FC<{ onNavigateBack: () => void }> = ({ onNav
         <div className="h-20 flex items-center justify-between px-6">
           {isSidebarOpen ? (
             <div className="flex flex-col">
-              <span className="font-serif text-xl italic font-bold uppercase tracking-widest text-gold leading-none">Lash Glaze</span>
+              <span className="font-serif text-xl italic font-bold uppercase tracking-widest text-gold leading-none">SWIPED BY</span>
               <span className={`text-[8px] tracking-[0.3em] font-bold opacity-40 uppercase leading-none mt-1 ${isMobileMenuOpen ? 'text-paper' : 'text-ink'}`}>Strip Lashes</span>
             </div>
           ) : (
@@ -346,7 +346,7 @@ const OverviewTab = ({ totalSales, orders, products, customers }: { totalSales: 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-accent/10 p-8 rounded-lg shadow-inner gap-6">
          <div>
             <h1 className="text-2xl font-sans font-bold mb-1 tracking-tight">Performance Overview</h1>
-            <p className="text-muted text-[10px] uppercase tracking-[0.2em] font-bold">Lash Glaze Strip Lashes Analytics</p>
+            <p className="text-muted text-[10px] uppercase tracking-[0.2em] font-bold">SWIPED BY Analytics</p>
          </div>
          <div className="flex flex-wrap gap-4">
             <div className="min-w-[180px]">
@@ -786,7 +786,7 @@ const AddProductWizard = ({ onSave, onCancel, initialData }: { onSave: (p: Produ
     price: initialData?.price?.toString() || '',
     salePrice: initialData?.salePrice?.toString() || '',
     category: initialData?.category || 'Lashes',
-    brand: initialData?.brand || 'Lash Glaze Strip Lashes',
+    brand: initialData?.brand || 'SWIPED BY',
     image: initialData?.image || '',
     gallery: initialData?.gallery || [] as string[],
     tags: initialData?.tags?.join(', ') || '',
@@ -800,6 +800,7 @@ const AddProductWizard = ({ onSave, onCancel, initialData }: { onSave: (p: Produ
     preOrderPrice: initialData?.preOrderPrice?.toString() || '',
     limitedTimeEnabled: initialData?.limitedTimeEnabled || false,
     limitedTimeEndsAt: initialData?.limitedTimeEndsAt ? new Date(initialData.limitedTimeEndsAt).toISOString().slice(0, 16) : '',
+    status: initialData?.status || 'active',
   });
 
   const [newColor, setNewColor] = useState('');
@@ -811,7 +812,7 @@ const AddProductWizard = ({ onSave, onCancel, initialData }: { onSave: (p: Produ
 
   const handleSave = () => {
     onSave({
-      id: data.id || Date.now().toString(),
+      id: data.id,
       name: data.name,
       brand: data.brand,
       price: parseFloat(data.price),
@@ -822,7 +823,7 @@ const AddProductWizard = ({ onSave, onCancel, initialData }: { onSave: (p: Produ
       category: data.category,
       tags: data.tags.split(',').map(t => t.trim()).filter(t => t !== ''),
       inventory: parseInt(data.inventory),
-      status: initialData?.status || 'active',
+      status: data.status as any,
       variants: {
         colors: data.colorVariantsEnabled ? data.colors : undefined,
         sizes: data.sizeVariantsEnabled ? data.sizes : undefined,
@@ -893,9 +894,17 @@ const AddProductWizard = ({ onSave, onCancel, initialData }: { onSave: (p: Produ
                    <input value={data.inventory} onChange={e => setData({...data, inventory: e.target.value})} type="number" placeholder="100" className="w-full bg-paper  p-3 rounded text-sm text-ink focus:border-gold outline-none" />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-muted">Tags</label>
-                <input value={data.tags} onChange={e => setData({...data, tags: e.target.value})} type="text" placeholder="Comma separated tags" className="w-full bg-paper  p-3 rounded text-sm text-ink placeholder:text-muted/50 focus:border-gold outline-none" />
+              <div className="grid grid-cols-2 gap-6">
+                <AdminDropdown 
+                  label="Availability Status"
+                  value={data.status}
+                  onChange={(v) => setData({...data, status: v})}
+                  options={['active', 'draft', 'archived']}
+                />
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-muted">Tags</label>
+                  <input value={data.tags} onChange={e => setData({...data, tags: e.target.value})} type="text" placeholder="Comma separated tags" className="w-full bg-paper  p-3 rounded text-sm text-ink placeholder:text-muted/50 focus:border-gold outline-none" />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] uppercase font-bold text-muted">Description</label>
@@ -1096,7 +1105,7 @@ const AddProductWizard = ({ onSave, onCancel, initialData }: { onSave: (p: Produ
                <div className="aspect-[4/5] bg-paper rounded  overflow-hidden relative group">
                   <img src={data.image || 'https://picsum.photos/seed/placeholder/800/1000'} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
-                     <p className="text-[10px] uppercase font-bold tracking-widest text-gold mb-1">{data.brand || 'Lash Glaze Strip Lashes'}</p>
+                     <p className="text-[10px] uppercase font-bold tracking-widest text-gold mb-1">{data.brand || 'SWIPED BY'}</p>
                      <h3 className="text-xl font-bold uppercase tracking-widest leading-tight">{data.name || 'Product Name'}</h3>
                   </div>
                </div>
@@ -1185,11 +1194,24 @@ const ProductsTab = ({ products, setProducts }: any) => {
     setShowAddWizard(true);
   };
 
+  const duplicateProduct = (p: Product) => {
+    const duplicated = {
+      ...p,
+      id: '',
+      name: `${p.name} (Copy)`,
+      status: 'draft' as const
+    };
+    setEditingProduct(duplicated);
+    setShowAddWizard(true);
+  };
+
   const handleAddCategory = async () => {
     if (newCategory.trim()) {
-      await saveCategory(newCategory.trim(), editingCategory?.id);
-      setNewCategory('');
-      setEditingCategory(null);
+      const success = await saveCategory(newCategory.trim(), editingCategory?.id);
+      if (success) {
+        setNewCategory('');
+        setEditingCategory(null);
+      }
     }
   };
 
@@ -1291,9 +1313,12 @@ const ProductsTab = ({ products, setProducts }: any) => {
              <div className="relative aspect-square overflow-hidden">
                <img src={p.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
-               <div className="absolute top-2 right-2 lg:top-4 lg:right-4 flex gap-2">
-                  <button onClick={() => startEdit(p)} className="p-1.5 lg:p-2 bg-ink/80 backdrop-blur-md rounded  hover:bg-gold hover:text-paper transition-all text-muted">
+               <div className="absolute top-2 right-2 lg:top-4 lg:right-4 flex flex-col gap-2">
+                  <button onClick={() => startEdit(p)} title="Edit Product" className="p-1.5 lg:p-2 bg-ink/80 backdrop-blur-md rounded  hover:bg-gold hover:text-paper transition-all text-muted">
                      <Edit size={12} />
+                  </button>
+                  <button onClick={() => duplicateProduct(p)} title="Duplicate Product" className="p-1.5 lg:p-2 bg-ink/80 backdrop-blur-md rounded  hover:bg-gold hover:text-paper transition-all text-muted">
+                     <Copy size={12} />
                   </button>
                </div>
                <div className="absolute bottom-3 left-3">
@@ -1915,7 +1940,7 @@ const PaymentTab = () => {
     shippingRegions, saveShippingRegion, deleteShippingRegion,
     taxRules, saveTaxRule, deleteTaxRule,
     coupons, saveCoupon, deleteCoupon,
-    storeSettings, products
+    storeSettings, updateStoreSettings, products
   } = useApp();
   
   const [isCouponWizardOpen, setIsCouponWizardOpen] = useState(false);
@@ -1959,6 +1984,21 @@ const PaymentTab = () => {
                   </div>
                 ))}
             </div>
+            </div>
+
+             <div className="p-6 bg-accent/10 border border-white/5 space-y-4">
+                <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">Cryptocurrency Portal (USDC)</h3>
+                <div className="space-y-4">
+                   <label className="text-[10px] uppercase text-muted font-bold tracking-widest">USDC Wallet Address</label>
+                   <input 
+                      type="text" 
+                      value={storeSettings.cryptoUsdcAddress || ''}
+                      onChange={(e) => updateStoreSettings({...storeSettings, cryptoUsdcAddress: e.target.value})}
+                      placeholder="0x..."
+                      className="w-full bg-paper p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                   />
+                </div>
+             </div>
          </div>
 
          {/* Logistics & Regions */}
@@ -2010,7 +2050,6 @@ const PaymentTab = () => {
                   </div>
                </div>
             </div>
-         </div>
       </div>
 
       {/* Promotion Engine */}
@@ -2181,7 +2220,6 @@ const PoliciesTab = () => {
         </div>
     );
 };
-;
 
 const CustomersTab = ({ customers }: any) => {
   const { formatPrice } = useApp();
@@ -2431,14 +2469,18 @@ const DesignTab = () => {
     };
 
     const baseHue = Math.floor(Math.random() * 360);
-    const compHue = (baseHue + 180) % 360;
+    const accentHue = (baseHue + (Math.random() > 0.5 ? 20 : -20)) % 360;
     const isDark = Math.random() > 0.5;
 
-    const paper = isDark ? hslToHex(baseHue, 20, 8) : hslToHex(baseHue, 20, 98);
-    const ink = isDark ? hslToHex(baseHue, 10, 95) : hslToHex(baseHue, 15, 10);
-    const accent = hslToHex(baseHue, 30, isDark ? 20 : 85);
-    const muted = hslToHex(baseHue, 15, 50);
-    const gold = hslToHex(compHue, 60, 50);
+    const paper = isDark ? hslToHex(baseHue, 15, 7) : hslToHex(baseHue, 10, 99);
+    const ink = isDark ? hslToHex(baseHue, 5, 95) : hslToHex(baseHue, 10, 5);
+    const accent = hslToHex(baseHue, 20, isDark ? 15 : 90);
+    const muted = hslToHex(baseHue, 10, 50);
+    
+    // Derived "samey" colors
+    const gold = hslToHex(accentHue, 50, 55);
+    const preOrder = hslToHex(accentHue, 40, 60);
+    const limitedTime = hslToHex(accentHue, 45, 50);
 
     setSaving(true);
     updateStoreSettings({
@@ -2449,10 +2491,14 @@ const DesignTab = () => {
         accent,
         muted,
         gold,
-        topbarBg: isDark ? hslToHex(baseHue, 15, 12) : hslToHex(baseHue, 15, 15),
-        topbarText: isDark ? hslToHex(baseHue, 10, 95) : hslToHex(baseHue, 10, 98),
-        buttonBg: isDark ? hslToHex(baseHue, 10, 90) : hslToHex(baseHue, 15, 12),
-        buttonText: isDark ? hslToHex(baseHue, 20, 8) : hslToHex(baseHue, 20, 98),
+        preOrder,
+        limitedTime,
+        // Topbar uses derived paper/ink for maximum consistency
+        topbarBg: isDark ? hslToHex(baseHue, 12, 10) : hslToHex(baseHue, 5, 97),
+        topbarText: ink,
+        // Buttons use gold for visibility but share text color with paper
+        buttonBg: gold,
+        buttonText: paper,
       }
     }).finally(() => setSaving(false));
   };
@@ -2576,12 +2622,17 @@ const DesignTab = () => {
             </div>
          </div>
 
-         <div className="space-y-8">
+          <div className="space-y-8">
             <div className="relative h-[600px] lg:h-full lg:min-h-[500px] bg-paper rounded-lg p-6 lg:p-12 flex flex-col items-center justify-center text-center group w-full overflow-hidden" style={{backgroundColor: theme.paper}}>
-               <div className="absolute inset-x-8 top-8 flex justify-between border-b border-black/10 pb-8" style={{borderColor: theme.accent}}>
+               {/* Mock Topbar Preview */}
+               <div className="absolute inset-x-0 top-0 h-20 flex items-center justify-between px-8 border-b border-black/5" style={{backgroundColor: theme.topbarBg, borderColor: theme.accent + '20'}}>
                   <div className="flex flex-col items-start">
-                     <span className="font-serif text-2xl italic font-bold uppercase tracking-widest leading-none" style={{color: theme.gold}}>Atelier</span>
-                     <span className="text-[10px] tracking-[0.4em] font-bold opacity-40 uppercase leading-none mt-1" style={{color: theme.ink}}>Preview Mode</span>
+                     <span className="font-serif text-xl italic font-bold uppercase tracking-widest leading-none" style={{color: theme.topbarText || theme.gold}}>Atelier</span>
+                     <span className="text-[8px] tracking-[0.4em] font-bold opacity-40 uppercase leading-none mt-1" style={{color: theme.topbarText || theme.ink}}>Visual Identity Mode</span>
+                  </div>
+                  <div className="flex gap-2">
+                     <div className="w-2 h-2 rounded-full" style={{backgroundColor: theme.preOrder}} title="Pre-order Tone" />
+                     <div className="w-2 h-2 rounded-full" style={{backgroundColor: theme.limitedTime}} title="Limited Time Tone" />
                   </div>
                </div>
 
@@ -2600,7 +2651,7 @@ const DesignTab = () => {
                           The quick brown fox jumps over the lazy dog. Interacting with the luxury tier requires precision.
                        </p>
                     </div>
-                    <button className="w-full py-4 text-[10px] uppercase font-bold tracking-[0.4em] transition-all" style={{backgroundColor: theme.gold, color: theme.paper}}>
+                    <button className="w-full py-4 text-[10px] uppercase font-bold tracking-[0.4em] transition-all shadow-xl" style={{backgroundColor: theme.buttonBg || theme.gold, color: theme.buttonText || theme.paper}}>
                        Export Stylesheet
                     </button>
                  </div>
@@ -2647,6 +2698,171 @@ const SettingsTab = () => {
              <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
                 <div className="flex items-center gap-4">
                    <div className="w-10 h-10 bg-gold/10 rounded flex items-center justify-center text-gold">
+                      <Lock size={18} />
+                   </div>
+                   <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">Security & Access Control</h3>
+                </div>
+                
+                <div className="space-y-8">
+                   <div className="flex items-center justify-between p-6 bg-accent/5 rounded-lg border border-accent/10">
+                      <div>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-ink">Timed Password Lock</p>
+                         <p className="text-[9px] text-muted mt-1 italic">Automatically lock the storefront when the timer expires</p>
+                      </div>
+                      <button 
+                         onClick={() => setLocalSettings({...localSettings, passwordLockEnabled: !localSettings.passwordLockEnabled})}
+                         className={`w-12 h-6 rounded-full relative transition-all flex items-center px-1 ${localSettings.passwordLockEnabled ? 'bg-gold' : 'bg-accent/20'}`}
+                      >
+                         <motion.div 
+                            animate={{ x: localSettings.passwordLockEnabled ? 24 : 0 }}
+                            className="w-4 h-4 rounded-full bg-paper shadow-md" 
+                         />
+                      </button>
+                   </div>
+
+                   {localSettings.passwordLockEnabled && (
+                     <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-accent/5"
+                     >
+                        <div className="space-y-4">
+                           <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Access Password</label>
+                           <input 
+                              type="text" 
+                              value={localSettings.passwordLockPassword || ''}
+                              onChange={(e) => setLocalSettings({...localSettings, passwordLockPassword: e.target.value})}
+                              placeholder="e.g. SWIPEDBY2024"
+                              className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors uppercase" 
+                           />
+                        </div>
+                        <div className="space-y-4">
+                           <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Lock Expiration (Lock Time)</label>
+                           <input 
+                              type="datetime-local" 
+                              value={localSettings.passwordLockExpiresAt ? new Date(localSettings.passwordLockExpiresAt).toISOString().slice(0, 16) : ''}
+                              onChange={(e) => setLocalSettings({...localSettings, passwordLockExpiresAt: new Date(e.target.value).toISOString()})}
+                              className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                           />
+                        </div>
+                        <div className="md:col-span-2 bg-red-50/50 p-4 border-l-2 border-red-200">
+                           <p className="text-[9px] uppercase tracking-widest font-bold text-red-900 leading-relaxed">
+                              Warning: Once the current time exceeds the expiration time, all non-admin users will be presented with a password prompt. If no password is set, only admins can enter.
+                           </p>
+                        </div>
+                     </motion.div>
+                   )}
+                </div>
+             </div>
+
+             <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
+                <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 bg-gold/10 rounded flex items-center justify-center text-gold">
+                      <RefreshCcw size={18} />
+                   </div>
+                   <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">Feature Management</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="flex items-center justify-between p-6 bg-accent/5 rounded-lg border border-accent/10">
+                      <div>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-ink">Subscribe & Save</p>
+                         <p className="text-[9px] text-muted mt-1 italic">Enable recurring subscription options</p>
+                      </div>
+                      <button 
+                         onClick={() => setLocalSettings({...localSettings, subscriptionsEnabled: !localSettings.subscriptionsEnabled})}
+                         className={`w-12 h-6 rounded-full relative transition-all flex items-center px-1 ${localSettings.subscriptionsEnabled ? 'bg-gold' : 'bg-accent/20'}`}
+                      >
+                         <motion.div 
+                            animate={{ x: localSettings.subscriptionsEnabled ? 24 : 0 }}
+                            className="w-4 h-4 rounded-full bg-paper shadow-md" 
+                         />
+                      </button>
+                   </div>
+                   <div className="space-y-4">
+                      <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Subscription Discount (%)</label>
+                      <input 
+                         type="number" 
+                         value={localSettings.subscriptionDiscountPercent}
+                         onChange={(e) => setLocalSettings({...localSettings, subscriptionDiscountPercent: parseInt(e.target.value) || 0})}
+                         className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                      />
+                   </div>
+                   <div className="flex items-center justify-between p-6 bg-accent/5 rounded-lg border border-accent/10">
+                      <div>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-ink">Hero Section</p>
+                         <p className="text-[9px] text-muted mt-1 italic">Showcase hero banner on homepage</p>
+                      </div>
+                      <button 
+                         onClick={() => setLocalSettings({...localSettings, heroEnabled: !localSettings.heroEnabled})}
+                         className={`w-12 h-6 rounded-full relative transition-all flex items-center px-1 ${localSettings.heroEnabled ? 'bg-gold' : 'bg-accent/20'}`}
+                      >
+                         <motion.div 
+                            animate={{ x: localSettings.heroEnabled ? 24 : 0 }}
+                            className="w-4 h-4 rounded-full bg-paper shadow-md" 
+                         />
+                      </button>
+                   </div>
+                   <div className="flex items-center justify-between p-6 bg-accent/5 rounded-lg border border-accent/10">
+                      <div>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-ink">Product Badges</p>
+                         <p className="text-[9px] text-muted mt-1 italic">Display status badges (New, Sale, etc)</p>
+                      </div>
+                      <button 
+                         onClick={() => setLocalSettings({...localSettings, badgesEnabled: !localSettings.badgesEnabled})}
+                         className={`w-12 h-6 rounded-full relative transition-all flex items-center px-1 ${localSettings.badgesEnabled ? 'bg-gold' : 'bg-accent/20'}`}
+                      >
+                         <motion.div 
+                            animate={{ x: localSettings.badgesEnabled ? 24 : 0 }}
+                            className="w-4 h-4 rounded-full bg-paper shadow-md" 
+                         />
+                      </button>
+                   </div>
+                </div>
+             </div>
+
+             <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
+                <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 bg-gold/10 rounded flex items-center justify-center text-gold">
+                      <Bell size={18} />
+                   </div>
+                   <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">Promotion Banner</h3>
+                </div>
+                
+                <div className="space-y-8">
+                   <div className="flex items-center justify-between p-6 bg-accent/5 rounded-lg border border-accent/10">
+                      <div>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-ink">Active Banner</p>
+                         <p className="text-[9px] text-muted mt-1 italic">Display a scrolling announcement bar at the very top</p>
+                      </div>
+                      <button 
+                         onClick={() => setLocalSettings({...localSettings, promoBannerEnabled: !localSettings.promoBannerEnabled})}
+                         className={`w-12 h-6 rounded-full relative transition-all flex items-center px-1 ${localSettings.promoBannerEnabled ? 'bg-gold' : 'bg-accent/20'}`}
+                      >
+                         <motion.div 
+                            animate={{ x: localSettings.promoBannerEnabled ? 24 : 0 }}
+                            className="w-4 h-4 rounded-full bg-paper shadow-md" 
+                         />
+                      </button>
+                   </div>
+
+                   {localSettings.promoBannerEnabled && (
+                     <div className="space-y-4 pt-4 border-t border-accent/5">
+                        <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Banner Text Content</label>
+                        <textarea 
+                           value={localSettings.promoBannerText}
+                           onChange={(e) => setLocalSettings({...localSettings, promoBannerText: e.target.value})}
+                           rows={2}
+                           className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors uppercase resize-none" 
+                        />
+                     </div>
+                   )}
+                </div>
+             </div>
+
+             <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
+                <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 bg-gold/10 rounded flex items-center justify-center text-gold">
                       <Globe size={18} />
                    </div>
                    <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">Identity & Presence</h3>
@@ -2657,8 +2873,8 @@ const SettingsTab = () => {
                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Atelier Name</label>
                       <input 
                          type="text" 
-                         value={localSettings.storeName}
-                         onChange={(e) => setLocalSettings({...localSettings, storeName: e.target.value})}
+                         value={localSettings.storeName || localSettings.name}
+                         onChange={(e) => setLocalSettings({...localSettings, storeName: e.target.value, name: e.target.value})}
                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors uppercase" 
                       />
                    </div>
@@ -2671,6 +2887,43 @@ const SettingsTab = () => {
                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors lowercase" 
                       />
                    </div>
+                </div>
+             </div>
+
+             <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
+                <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 bg-gold/10 rounded flex items-center justify-center text-gold">
+                      <CreditCard size={18} />
+                   </div>
+                   <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">PayPal Friends & Family Portal</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="space-y-4">
+                      <label className="text-[10px] uppercase text-muted font-bold tracking-widest">PayPal Receiver Email</label>
+                      <input 
+                         type="email" 
+                         value={localSettings.paypalEmail || ''}
+                         onChange={(e) => setLocalSettings({...localSettings, paypalEmail: e.target.value})}
+                         placeholder="concierge@swiped-by.com"
+                         className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors lowercase" 
+                      />
+                   </div>
+                   <div className="space-y-4">
+                      <label className="text-[10px] uppercase text-muted font-bold tracking-widest">PayPal.Me Link</label>
+                      <input 
+                         type="text" 
+                         value={localSettings.paypalMeLink || ''}
+                         onChange={(e) => setLocalSettings({...localSettings, paypalMeLink: e.target.value})}
+                         placeholder="https://paypal.me/swipedby"
+                         className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                      />
+                   </div>
+                </div>
+                <div className="bg-amber-50 p-6 border-l-2 border-amber-400">
+                   <p className="text-[9px] uppercase tracking-widest font-bold text-amber-900 leading-relaxed">
+                      Note: This will replace the standard PayPal checkout with a manual "Friends & Family" portal. Customers will be instructed to send payment manually to these credentials.
+                   </p>
                 </div>
              </div>
 

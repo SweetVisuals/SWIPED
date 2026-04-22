@@ -4,10 +4,11 @@ import { Clock } from 'lucide-react';
 
 interface CountdownTimerProps {
   expiry: Date | string;
-  variant?: 'hero' | 'inline' | 'compact';
+  variant?: 'hero' | 'inline' | 'compact' | 'button';
+  inventory?: number;
 }
 
-export const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiry, variant = 'hero' }) => {
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiry, variant = 'hero', inventory = 12 }) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -41,7 +42,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiry, variant 
   const Item = ({ value, label }: { value: number, label: string }) => (
     <div className="flex flex-col items-center">
       <div className="relative group">
-        <div className="absolute inset-0 bg-gold/20 blur-xl group-hover:bg-gold/40 transition-all rounded-full" />
+        <div className="absolute inset-0 bg-accent/5 blur-xl group-hover:bg-accent/10 transition-all rounded-full" />
         <div className="relative bg-white/5 backdrop-blur-2xl px-4 py-3 rounded-2xl flex flex-col items-center min-w-[70px] lg:min-w-[90px] shadow-2xl shadow-black/10">
           <AnimatePresence mode="popLayout">
             <motion.span 
@@ -49,7 +50,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiry, variant 
               initial={{ y: 10, opacity: 0, filter: 'blur(4px)' }}
               animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
               exit={{ y: -10, opacity: 0, filter: 'blur(4px)' }}
-              className="text-paper text-2xl lg:text-4xl font-serif italic font-bold tracking-tighter tabular-nums"
+              className="text-ink text-2xl lg:text-4xl font-display font-black tracking-tighter tabular-nums"
             >
               {value.toString().padStart(2, '0')}
             </motion.span>
@@ -99,44 +100,47 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiry, variant 
         className="relative group h-16 w-80"
       >
         <div 
-          className="relative h-full w-full flex items-center bg-topbarBg border-none shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden transition-transform duration-500 hover:scale-[1.01] rounded-none cursor-default"
+          className="relative h-full w-full flex items-center bg-paper/60 backdrop-blur-xl border-none shadow-[0_30px_60px_rgba(0,0,0,0.1)] overflow-hidden transition-all duration-500 hover:scale-[1.02] rounded-2xl cursor-default"
         >
           {/* Accent Line */}
-          <div className="absolute top-0 left-0 w-[2px] h-full bg-gold animate-pulse" />
+          <div className="absolute top-0 left-0 w-[3px] h-full bg-gold" />
           
           <div className="flex w-full items-center">
             {/* Stock Label */}
-            <div className="flex flex-col px-6 border-r border-ink/5">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-ink whitespace-nowrap">Limited Stock</span>
-              <span className="text-[8px] uppercase tracking-[0.1em] text-gold font-bold">Only 12 items left</span>
+            <div className="flex flex-col px-6">
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-ink whitespace-nowrap">Limited Release</span>
+              <span className="text-[7px] uppercase tracking-[0.1em] text-gold font-bold">Only {inventory.toString().padStart(2, '0')} items remaining</span>
             </div>
 
+            {/* Divider */}
+            <div className="w-[1px] h-8 bg-ink/5" />
+
             {/* Timer Section */}
-            <div className="flex flex-1 items-center justify-around px-2">
+            <div className="flex flex-1 items-center justify-around px-4">
               <div className="flex flex-col items-center">
-                <span className="font-serif italic text-xl text-ink leading-tight tabular-nums">{timeLeft.days}</span>
-                <span className="text-[6px] uppercase tracking-widest font-bold text-ink/30">D</span>
+                <span className="font-display font-black text-xl text-ink leading-tight tabular-nums">{timeLeft.days}</span>
+                <span className="text-[6px] uppercase tracking-widest font-black text-ink/20">D</span>
               </div>
-              <span className="text-ink/10 text-xs">:</span>
+              <span className="text-ink/10 text-xs font-black">:</span>
               <div className="flex flex-col items-center">
-                <span className="font-serif italic text-xl text-ink leading-tight tabular-nums">{timeLeft.hours.toString().padStart(2, '0')}</span>
-                <span className="text-[6px] uppercase tracking-widest font-bold text-ink/30">H</span>
+                <span className="font-display font-black text-xl text-ink leading-tight tabular-nums">{timeLeft.hours.toString().padStart(2, '0')}</span>
+                <span className="text-[6px] uppercase tracking-widest font-black text-ink/20">H</span>
               </div>
-              <span className="text-ink/10 text-xs">:</span>
+              <span className="text-ink/10 text-xs font-black">:</span>
               <div className="flex flex-col items-center">
-                <span className="font-serif italic text-xl text-ink leading-tight tabular-nums">{timeLeft.minutes.toString().padStart(2, '0')}</span>
-                <span className="text-[6px] uppercase tracking-widest font-bold text-ink/30">M</span>
+                <span className="font-display font-black text-xl text-ink leading-tight tabular-nums">{timeLeft.minutes.toString().padStart(2, '0')}</span>
+                <span className="text-[6px] uppercase tracking-widest font-black text-ink/20">M</span>
               </div>
-              <span className="text-ink/10 text-xs">:</span>
+              <span className="text-ink/10 text-xs font-black">:</span>
               <div className="flex flex-col items-center">
-                <span className="font-serif italic text-xl text-gold leading-tight tabular-nums animate-pulse">{timeLeft.seconds.toString().padStart(2, '0')}</span>
-                <span className="text-[6px] uppercase tracking-widest font-bold text-gold/40">S</span>
+                <span className="font-display font-black text-xl text-gold leading-tight tabular-nums animate-pulse">{timeLeft.seconds.toString().padStart(2, '0')}</span>
+                <span className="text-[6px] uppercase tracking-widest font-black text-gold/40">S</span>
               </div>
             </div>
           </div>
           
           {/* Subtle Shine */}
-          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-gold/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-gold/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
         </div>
       </motion.div>
     );

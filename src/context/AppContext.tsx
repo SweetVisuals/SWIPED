@@ -9,7 +9,7 @@ import { INITIAL_PRODUCTS, INITIAL_SETTINGS } from '../data';
 
 import { supabase } from '../supabase';
 import { Database } from '../types/database';
-import { formatPrice as formatPriceUtil } from '../utils/format';
+import { formatPrice as formatPriceUtil, slugify } from '../utils/format';
 
 interface CartItem extends Product {
   quantity: number;
@@ -84,6 +84,8 @@ interface AppContextType {
   dropExpiry: Date;
   isDropActive: boolean;
   liveVisitors: number;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
 }
 
 
@@ -107,6 +109,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [profile, setProfile] = useState<any>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [liveVisitors, setLiveVisitors] = useState(0);
+  const [settingsId, setSettingsId] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   
   useEffect(() => {
@@ -122,7 +126,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const checkAdmin = async (userId: string, email: string) => {
       const profileData = await fetchProfile(userId);
       setProfile(profileData);
-      return profileData?.role === 'admin' || email === 'admin@lashglaze.com';
+      return profileData?.role === 'admin' || email.endsWith('@swipedby.com') || email === 'admin@swiped-by.com';
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -195,26 +199,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .single();
         
         if (settingsData) {
-          setStoreSettings({
-            name: settingsData.name,
-            currency: settingsData.currency || '£',
-            logo: settingsData.logo || '',
-            heroBannerUrl: settingsData.hero_banner_url || INITIAL_SETTINGS.heroBannerUrl,
-            instagramUrl: settingsData.instagram_url || INITIAL_SETTINGS.instagramUrl,
-            tiktokUrl: settingsData.tiktok_url || INITIAL_SETTINGS.tiktokUrl,
-            colors: (settingsData.colors as any) || INITIAL_SETTINGS.colors
-          });
+          setSettingsId(settingsData.id);
+            setStoreSettings({
+              name: settingsData.name,
+              currency: settingsData.currency || '£',
+              logo: settingsData.logo || '',
+              heroBannerUrl: settingsData.hero_banner_url || INITIAL_SETTINGS.heroBannerUrl,
+              heroEnabled: settingsData.hero_enabled ?? true,
+              badgesEnabled: settingsData.badges_enabled ?? true,
+              promoBannerEnabled: settingsData.promo_banner_enabled ?? false,
+              promoBannerText: settingsData.promo_banner_text || 'FREE WORLDWIDE SHIPPING ON ALL ORDERS OVER £50',
+              instagramUrl: settingsData.instagram_url || INITIAL_SETTINGS.instagramUrl,
+              tiktokUrl: settingsData.tiktok_url || INITIAL_SETTINGS.tiktokUrl,
+              supportEmail: settingsData.support_email || INITIAL_SETTINGS.supportEmail,
+              paypalEmail: settingsData.paypal_email,
+              paypalMeLink: settingsData.paypal_me_link,
+              cryptoUsdcAddress: settingsData.crypto_usdc_address,
+              subscriptionsEnabled: settingsData.subscriptions_enabled ?? true,
+              subscriptionDiscountPercent: settingsData.subscription_discount_percent ?? 15,
+              passwordLockEnabled: settingsData.password_lock_enabled ?? false,
+              passwordLockPassword: settingsData.password_lock_password || '',
+              passwordLockExpiresAt: settingsData.password_lock_expires_at || '',
+              colors: (settingsData.colors as any) || INITIAL_SETTINGS.colors
+            });
         }
 
-        // Fetch Products
+        // Fetch Products with category names
         const { data: productsData } = await supabase
           .from('products')
-          .select('*')
+          .select('*, categories(name)')
           .order('created_at', { ascending: false });
         
         if (productsData) {
           setProducts(productsData.map(p => ({
             ...p,
+            image: p.image_url || '',
+            category: (p.categories as any)?.name || 'Uncategorized',
+            description: p.description || '',
             salePrice: p.sale_price ?? undefined,
             variants: (p.variants as any) || undefined,
             preOrderEnabled: p.pre_order_enabled ?? false,
@@ -300,7 +321,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .select('*');
           
         if (paymentData) {
-          setPaymentMethods(paymentData as any);
+          let methods = paymentData as any;
+          if (!methods.find((m: any) => m.type === 'crypto')) {
+             methods.push({ id: 'crypto-payment', name: 'Cryptocurrency (USDC)', type: 'crypto', enabled: true });
+          }
+          setPaymentMethods(methods);
         }
 
         // Fetch Categories
@@ -399,7 +424,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               shipping_address, shipping_city, shipping_postal_code, shipping_country, tracking_number,
               order_items ( product_id, quantity, price )
             `)
-            .eq('profile_id', user.id)
+            .or(`profile_id.eq.${user.id},customer_email.eq.${user.email.toLowerCase()}`)
             .order('created_at', { ascending: false });
           
           if (ordersData) {
@@ -523,6 +548,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsAdmin(false);
       setIsCustomerLoggedIn(false);
       setUser(null);
+      sessionStorage.removeItem('storefront_unlocked');
       // Force a reload to definitively clear any "ghost" states or frozen React nodes
       window.location.href = '/'; 
     }
@@ -558,11 +584,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           currency: newSettings.currency,
           logo: newSettings.logo,
           hero_banner_url: newSettings.heroBannerUrl,
+          hero_enabled: newSettings.heroEnabled,
+          badges_enabled: newSettings.badgesEnabled,
+          promo_banner_enabled: newSettings.promoBannerEnabled,
+          promo_banner_text: newSettings.promoBannerText,
           instagram_url: newSettings.instagramUrl,
           tiktok_url: newSettings.tiktokUrl,
+          support_email: newSettings.supportEmail,
+          paypal_email: newSettings.paypalEmail,
+          paypal_me_link: newSettings.paypalMeLink,
+          crypto_usdc_address: newSettings.cryptoUsdcAddress,
+          subscriptions_enabled: newSettings.subscriptionsEnabled,
+          subscription_discount_percent: newSettings.subscriptionDiscountPercent,
+          password_lock_enabled: newSettings.passwordLockEnabled,
+          password_lock_password: newSettings.passwordLockPassword,
+          password_lock_expires_at: newSettings.passwordLockExpiresAt || null,
           colors: newSettings.colors as any
         })
-        .eq('id', 1);
+        .eq('id', settingsId);
 
       if (error) {
          console.warn('Could not save settings to DB (User not auth / RLS blocked). Applied locally.');
@@ -675,22 +714,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const saveCategory = async (name: string, id?: string) => {
     try {
+      const slug = slugify(name);
       const { data, error } = await supabase
         .from('categories')
-        .upsert(id ? { id, name } : { name })
+        .upsert(
+          id ? { id, name, slug } : { name, slug },
+          { onConflict: 'slug' } // Allow updating/ignoring if slug exists
+        )
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error saving category:', error);
+        alert(`Failed to save category: ${error.message}`);
+        return false;
+      }
+
       if (data) {
         setCategories(prev => {
           const exists = prev.find(c => c.id === data.id);
           if (exists) return prev.map(c => c.id === data.id ? data : c);
           return [...prev, data];
         });
+        return true;
       }
-    } catch (error) {
+      return false;
+    } catch (error: any) {
       console.error('Error saving category:', error);
+      alert(`Unexpected error: ${error.message || 'Failed to save category'}`);
+      return false;
     }
   };
 
@@ -793,16 +845,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const saveProduct = async (product: Product) => {
     try {
+      const categoryObj = categories.find(c => c.name === product.category || c.id === product.category);
+      
       const dbProduct = {
-        id: product.id.length > 20 ? product.id : undefined, // Check if it's a temp ID or UUID
+        id: (product.id && product.id.length > 20) ? product.id : undefined, // Check if it's a temp ID or UUID
         name: product.name,
         brand: product.brand,
         price: product.price,
         sale_price: product.salePrice,
         description: product.description,
-        image: product.image,
+        image_url: product.image,
         gallery: product.gallery,
-        category: product.category,
+        category_id: categoryObj?.id || undefined,
         tags: product.tags,
         inventory: product.inventory,
         status: product.status,
@@ -820,11 +874,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error saving product:', error);
+        alert(`Failed to save product: ${error.message}`);
+        throw error;
+      }
 
       if (data) {
         const savedProduct: Product = {
           ...data,
+          image: data.image_url || '',
+          category: categoryObj?.name || 'Uncategorized',
+          description: data.description || '',
           salePrice: data.sale_price ?? undefined,
           variants: (data.variants as any) || undefined,
           preOrderEnabled: data.pre_order_enabled ?? false,
@@ -841,9 +902,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
           return [savedProduct, ...prev];
         });
+        return savedProduct;
       }
-    } catch (error) {
-      console.error('Error saving product:', error);
+    } catch (err: any) {
+      console.error('Error saving product:', err);
+      alert(`Error saving product: ${err.message || 'Please check your connection and try again.'}`);
+      throw err;
     }
   };
 
@@ -880,9 +944,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          profile_id: (user && (orderData.customer_email.toLowerCase() === user.email?.toLowerCase() || orderData.customer_email.toLowerCase() === profile?.email?.toLowerCase())) ? user.id : null,
+          profile_id: user?.id || null,
           customer_name: orderData.customer_name,
-          customer_email: orderData.customer_email,
+          customer_email: orderData.customer_email.toLowerCase(),
           total: orderData.total,
           status: 'pending',
           stripe_payment_intent_id: orderData.stripe_payment_intent_id,
@@ -1054,7 +1118,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateStoreSettings, saveProduct, deleteProductFromDb, saveCategory, deleteCategory, formatPrice, user, profile, signInWithGoogle,
       togglePaymentMethod, saveShippingRegion, deleteShippingRegion, saveTaxRule, deleteTaxRule, saveCoupon, deleteCoupon, savePolicy,
       createOrder, updateOrder, deleteOrder, refundOrder, formatOrderNumber,
-      isInitialLoading
+      isInitialLoading,
+      isAuthModalOpen,
+      setIsAuthModalOpen
     }}>
       {children}
     </AppContext.Provider>

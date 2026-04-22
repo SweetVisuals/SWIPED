@@ -5,209 +5,292 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { motion } from 'motion/react';
-import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Clock } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Clock, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { Product } from '../types';
 import { CountdownTimer } from '../components/CountdownTimer';
+import { ProductFilter } from '../components/ProductFilter';
 
 interface StoreProps {
   onProductClick: (id: string) => void;
 }
 
 export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
-  const { products, formatPrice, storeSettings } = useApp();
-  const [filterType, setFilterType] = useState('All');
+  const { products, formatPrice, storeSettings, isAdmin } = useApp();
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   return (
-    <div className="pb-20 bg-paper">
-      {/* Announcement Bar */}
-      <div className="bg-accent py-2 overflow-hidden whitespace-nowrap">
-        <motion.div 
-          animate={{ x: [0, -1000] }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          className="inline-block text-ink text-[9px] font-bold uppercase tracking-[0.4em]"
-        >
-          Limited weekly drops - don't miss out • Hand-crafted luxury strip lashes • New styles every Monday • Worldwide shipping available • 
-          Limited weekly drops - don't miss out • Hand-crafted luxury strip lashes • New styles every Monday • Worldwide shipping available • 
-        </motion.div>
-      </div>
-
+    <div className="pb-32 bg-paper selection:bg-gold selection:text-paper">
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden bg-accent/10">
-        <div className="absolute inset-0 z-0 opacity-100">
-          <img 
-            src={storeSettings.heroBannerUrl} 
-            alt="Editorial Lash Hero"
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-black/[0.65]" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-paper" />
-        </div>
-        
-        <div className="relative z-10 text-center px-4 max-w-4xl">
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2 }}
-            className="font-serif text-6xl md:text-8xl text-white mb-10 tracking-tight italic"
-          >
-            The Muse Collection
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 1 }}
-            className="text-xs md:text-sm text-white/80 mb-12 tracking-[0.4em] uppercase font-bold"
-          >
-            Crafted for the modern gaze.
-          </motion.p>
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.8 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-              <button 
-                onClick={() => document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' })}
-                className="w-64 h-16 flex items-center justify-center bg-white/10 backdrop-blur-2xl text-white text-[11px] tracking-[0.4em] uppercase font-bold shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 rounded-none border-none z-[60] relative overflow-hidden group"
-              >
-                <div className="absolute top-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -left-full group-hover:animate-shine" />
-                Shop Collection
-              </button>
-              {(() => {
-                const productWithTimer = [...products]
-                  .sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime()) // Assuming numeric IDs are timestamps or using created_at if available
-                  .find(p => p.limitedTimeEnabled && p.limitedTimeEndsAt);
-                
-                const expiry = productWithTimer?.limitedTimeEndsAt 
-                  ? new Date(productWithTimer.limitedTimeEndsAt) 
-                  : new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-
-                return (
-                  <CountdownTimer 
-                    expiry={expiry} 
-                    variant="button"
-                  />
-                );
-              })()}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Trust Badges - Minimal Editorial Style */}
-      <section className="max-w-5xl mx-auto px-8 md:px-16 py-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="flex flex-col items-center text-center p-4">
-            <RefreshCcw className="text-muted mb-6" size={24} strokeWidth={1} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold mb-4">Artisanal Craft</h3>
-            <p className="text-[9px] text-muted uppercase tracking-[0.2em] leading-loose max-w-[170px]">Hand-knotted silk perfection</p>
+      {storeSettings.heroEnabled && (
+        <section className="relative h-[95vh] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <motion.img 
+              initial={{ scale: 1.1, opacity: 0 }}
+              animate={{ scale: 1.05, opacity: 1 }}
+              transition={{ duration: 2.5, ease: "easeOut" }}
+              src={storeSettings.heroBannerUrl} 
+              alt="SWIPED BY Hero"
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-paper via-paper/10 to-transparent" />
+            <div className="absolute inset-0 bg-black/10" />
           </div>
-          <div className="flex flex-col items-center text-center p-4">
-            <Truck className="text-muted mb-6" size={24} strokeWidth={1} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold mb-4">Global Shipping</h3>
-            <p className="text-[9px] text-muted uppercase tracking-[0.2em] leading-loose max-w-[170px]">Tracked delivery worldwide</p>
-          </div>
-          <div className="flex flex-col items-center text-center p-4">
-            <ShieldCheck className="text-muted mb-6" size={24} strokeWidth={1} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold mb-4">Premium Silk</h3>
-            <p className="text-[9px] text-muted uppercase tracking-[0.2em] leading-loose max-w-[170px]">Reusable up to 15 wears</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Product Feed */}
-      <section id="collection" className="max-w-5xl mx-auto px-8 md:px-16 py-24">
-        <div className="flex flex-col items-center mb-16 text-center">
-          <h2 className="font-serif text-5xl md:text-7xl text-ink italic mb-6 tracking-tight">The Complete Edition</h2>
-          <p className="text-[10px] text-muted uppercase tracking-[0.5em] font-bold opacity-60">Limited run lash package</p>
-        </div>
-
-        <div className="flex justify-center">
-          {products
-            .filter(p => p.status === 'active')
-            .map((product, idx) => (
-            <motion.div 
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              viewport={{ once: true }}
-              className="group cursor-pointer w-full max-w-xl"
-              onClick={() => onProductClick(product.id)}
+          
+          <div className="relative z-10 text-center px-8 max-w-6xl">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="relative aspect-video overflow-hidden bg-accent/20 mb-6 p-2 rounded-none">
-                <div className="w-full h-full overflow-hidden bg-white rounded-none relative">
-                   {(() => {
-                     const now = new Date();
-                     const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
-                     const limitedTimeEndsAt = product.limitedTimeEndsAt ? new Date(product.limitedTimeEndsAt) : null;
+              <motion.span 
+                initial={{ opacity: 0, tracking: '0.2em' }}
+                animate={{ opacity: 1, tracking: '0.6em' }}
+                transition={{ duration: 1, delay: 0.5 }}
+                className="inline-block text-[10px] text-gold font-black uppercase mb-10 block"
+              >
+                Now Available: Series 15 Advanced
+              </motion.span>
+              <h1 className="font-display text-7xl md:text-9xl text-ink font-black mb-12 tracking-tighter leading-[0.85] uppercase">
+                Defining <br/>Performance.
+              </h1>
+              <p className="text-[11px] md:text-xs text-muted mb-20 tracking-[0.4em] uppercase font-black max-w-2xl mx-auto leading-loose opacity-60">
+                Experience the absolute pinnacle of mobile architecture. <br className="hidden md:block"/> Precision engineering meets editorial elegance.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="luxury-button-filled group flex items-center gap-4"
+                  >
+                    Explore Collection
+                    <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
+                  </motion.button>
+                  {(() => {
+                    const productWithTimer = [...products]
+                      .sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime())
+                      .find(p => p.limitedTimeEnabled && p.limitedTimeEndsAt);
+                    
+                    const expiry = productWithTimer?.limitedTimeEndsAt 
+                      ? new Date(productWithTimer.limitedTimeEndsAt) 
+                      : new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
 
-                     const isPreOrder = !!(product.preOrderEnabled && preOrderEndsAt && now < preOrderEndsAt);
-                     const isLimited = !!(product.limitedTimeEnabled && limitedTimeEndsAt && now < limitedTimeEndsAt && (!preOrderEndsAt || now > preOrderEndsAt));
-                     const isReserve = !!(product.limitedTimeEnabled && limitedTimeEndsAt && now >= limitedTimeEndsAt);
-
-                     if (isPreOrder) return (
-                        <div className="absolute top-4 left-4 z-10 bg-gold text-paper px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em] shadow-lg">
-                          Pre-order
-                        </div>
-                     );
-                     if (isLimited) return (
-                        <div className="absolute top-4 left-4 z-10 bg-red-500 text-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em] shadow-lg animate-pulse">
-                          Limited Time
-                        </div>
-                     );
-                     if (isReserve) return (
-                        <div className="absolute top-4 left-4 z-10 bg-blue-500 text-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.2em] shadow-lg">
-                          Reserve Order
-                        </div>
-                     );
-                     return null;
-                   })()}
-                  <img 
-                    src={product.image} 
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 grayscale-[20%] group-hover:grayscale-0"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <button className="hidden md:block absolute bottom-6 left-6 right-6 bg-white text-black py-4 text-[10px] font-bold uppercase tracking-[0.2em] transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 rounded-none shadow-2xl hover:bg-gold hover:text-black">
-                  Select Package
-                </button>
-              </div>
-              <div className="space-y-2 text-center mt-8">
-                <h3 className="font-serif text-2xl md:text-3xl italic group-hover:text-muted transition-colors leading-tight">{product.name}</h3>
-                <div className="flex items-center justify-center gap-4">
-                   <span className="text-[10px] uppercase tracking-widest text-muted">Glaze Series Base</span>
-                   <span className="text-xs text-muted">|</span>
-                   <p className="text-sm text-ink font-bold leading-none">
-                     {(() => {
-                       const now = new Date();
-                       const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
-                       const isPreOrder = !!(product.preOrderEnabled && preOrderEndsAt && now < preOrderEndsAt);
-                       const currentPrice = (isPreOrder && product.preOrderPrice) 
-                         ? product.preOrderPrice 
-                         : (product.salePrice && product.salePrice < product.price ? product.salePrice : product.price);
-
-                       if (currentPrice < product.price) {
-                         return (
-                            <>
-                              <span className="text-gold">{formatPrice(currentPrice)}</span>
-                              <span className="ml-2 text-[10px] text-muted line-through opacity-50">{formatPrice(product.price)}</span>
-                            </>
-                         );
-                       }
-                       return formatPrice(product.price);
-                     })()}
-                   </p>
-                </div>
+                    return (
+                      <CountdownTimer 
+                        expiry={expiry} 
+                        variant="button"
+                      />
+                    );
+                  })()}
               </div>
             </motion.div>
-          ))}
+          </div>
+        </section>
+      )}
+
+      {/* Trust Badges - Modern Layout */}
+      {storeSettings.badgesEnabled && (
+        <section className="max-w-7xl mx-auto px-8 md:px-16 py-40">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="premium-card text-center group"
+            >
+              <div className="w-16 h-16 bg-accent/5 rounded-3xl flex items-center justify-center mx-auto mb-10 transition-transform duration-700 group-hover:rotate-[360deg]">
+                <RefreshCcw className="text-gold" size={24} />
+              </div>
+              <h3 className="text-[11px] uppercase tracking-[0.4em] font-black mb-6">Certified Quality</h3>
+              <p className="text-[10px] text-muted font-black tracking-widest uppercase leading-loose opacity-40">100-point inspection by certified technicians on every hardware unit.</p>
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="premium-card text-center group"
+            >
+              <div className="w-16 h-16 bg-accent/5 rounded-3xl flex items-center justify-center mx-auto mb-10 transition-transform duration-700 group-hover:-translate-y-2">
+                <Truck className="text-gold" size={24} />
+              </div>
+              <h3 className="text-[11px] uppercase tracking-[0.4em] font-black mb-6">Global Transit</h3>
+              <p className="text-[10px] text-muted font-black tracking-widest uppercase leading-loose opacity-40">Priority logistics. Next-day delivery available in all major territories.</p>
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="premium-card text-center group"
+            >
+              <div className="w-16 h-16 bg-accent/5 rounded-3xl flex items-center justify-center mx-auto mb-10 transition-all duration-700 group-hover:scale-110">
+                <ShieldCheck className="text-gold" size={24} />
+              </div>
+              <h3 className="text-[11px] uppercase tracking-[0.4em] font-black mb-6">Hub Protection</h3>
+              <p className="text-[10px] text-muted font-black tracking-widest uppercase leading-loose opacity-40">Industry-leading 2-year comprehensive coverage on all system hardware.</p>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* Product Feed */}
+      <section id="collection" className="max-w-7xl mx-auto px-8 md:px-16 py-20">
+        <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
+          <ProductFilter 
+            products={products} 
+            onFilterChange={setFilteredProducts}
+            formatPrice={(amount) => formatPrice(amount)}
+            isAdmin={isAdmin}
+          />
+
+          <div className="flex-grow w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-16">
+              <AnimatePresence mode="popLayout">
+                {filteredProducts.map((product, idx) => (
+                  <motion.div 
+                    key={product.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ 
+                      duration: 0.5, 
+                      ease: [0.22, 1, 0.36, 1],
+                      layout: { duration: 0.4 }
+                    }}
+                    viewport={{ once: true }}
+                    className="group cursor-pointer"
+                    onClick={() => onProductClick(product.id)}
+                  >
+                    <div className="relative aspect-square overflow-hidden rounded-[3rem] bg-white mb-10 shadow-lg group-hover:shadow-[0_40px_100px_rgba(0,0,0,0.1)] transition-all duration-700">
+                        {(() => {
+                          const now = new Date();
+                          const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
+                          const limitedTimeEndsAt = product.limitedTimeEndsAt ? new Date(product.limitedTimeEndsAt) : null;
+
+                          const isPreOrder = !!(product.preOrderEnabled && preOrderEndsAt && now < preOrderEndsAt);
+                          const isLimited = !!(product.limitedTimeEnabled && limitedTimeEndsAt && now < limitedTimeEndsAt && (!preOrderEndsAt || now > preOrderEndsAt));
+                          const isReserve = !!(product.limitedTimeEnabled && limitedTimeEndsAt && now >= limitedTimeEndsAt);
+
+                          if (isLimited) return null; // Moved to title area
+
+                          if (isAdmin && product.status === 'draft') return (
+                            <div className="absolute top-8 left-8 z-20 pointer-events-none">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-blue-500/20 blur-xl animate-pulse" />
+                                <div className="relative bg-blue-500/90 backdrop-blur-md text-white px-5 py-2 text-[8px] font-black uppercase tracking-[0.3em] rounded-full flex items-center gap-2 shadow-2xl">
+                                  <span className="w-1 h-1 bg-white rounded-full animate-pulse" />
+                                  Preview / Draft
+                                </div>
+                              </div>
+                            </div>
+                          );
+
+                          if (isPreOrder) return (
+                            <div className="absolute top-8 left-8 z-20 pointer-events-none">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-accent/20 blur-xl animate-pulse" />
+                                <div className="relative bg-paper/90 backdrop-blur-md text-accent px-5 py-2 text-[8px] font-black uppercase tracking-[0.3em] rounded-full flex items-center gap-2 shadow-2xl">
+                                  <span className="w-1 h-1 bg-accent rounded-full animate-pulse" />
+                                  Priority Order
+                                </div>
+                              </div>
+                            </div>
+                          );
+                          if (isReserve) return (
+                            <div className="absolute top-8 left-8 z-20 pointer-events-none">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-ink/10 blur-xl" />
+                                <div className="relative bg-ink/90 backdrop-blur-md text-paper px-5 py-2 text-[8px] font-black uppercase tracking-[0.3em] rounded-full flex items-center gap-2 shadow-2xl">
+                                  <span className="w-1 h-1 bg-white/40 rounded-full" />
+                                  Reserve Archive
+                                </div>
+                              </div>
+                            </div>
+                          );
+                          return null;
+                        })()}
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-full h-full object-contain p-8 group-hover:scale-110 transition-transform duration-[2000ms] ease-out"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-end p-10 backdrop-blur-[2px]">
+                          <motion.button 
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full py-6 bg-paper text-ink text-[11px] font-black uppercase tracking-[0.3em] rounded-[1.5rem] shadow-2xl translate-y-8 group-hover:translate-y-0 transition-all duration-700"
+                          >
+                            View Details
+                          </motion.button>
+                        </div>
+                    </div>
+                    <div className="space-y-4 px-4">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-display text-xl font-black group-hover:text-gold transition-colors leading-[0.9] uppercase tracking-tighter truncate block flex-grow">{product.name}</h3>
+                          {(() => {
+                            const now = new Date();
+                            const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
+                            const limitedTimeEndsAt = product.limitedTimeEndsAt ? new Date(product.limitedTimeEndsAt) : null;
+                            const isPreOrder = !!(product.preOrderEnabled && preOrderEndsAt && now < preOrderEndsAt);
+                            const isLimited = !!(product.limitedTimeEnabled && limitedTimeEndsAt && now < limitedTimeEndsAt && (!preOrderEndsAt || now > preOrderEndsAt));
+                            
+                            if (isLimited) return (
+                              <div className="relative flex items-center justify-center shrink-0" title="Limited Archive">
+                                <div className="absolute inset-0 bg-gold/20 blur-md animate-pulse rounded-full" />
+                                <div className="relative w-2 h-2 bg-gold rounded-full shadow-[0_0_8px_#D4AF37] animate-pulse" />
+                              </div>
+                            );
+                            return null;
+                          })()}
+                        </div>
+                        <div className="flex items-center gap-4 h-6">
+                          {(() => {
+                            const now = new Date();
+                            const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
+                            const isPreOrder = !!(product.preOrderEnabled && preOrderEndsAt && now < preOrderEndsAt);
+                            const currentPrice = (isPreOrder && product.preOrderPrice) 
+                              ? product.preOrderPrice 
+                              : (product.salePrice && product.salePrice < product.price ? product.salePrice : product.price);
+
+                            if (currentPrice < product.price) {
+                              return (
+                                <div className="flex items-baseline gap-3">
+                                  <span className="text-lg text-ink font-black tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(currentPrice)}</span>
+                                  <span className="text-[10px] text-muted line-through opacity-30 font-black tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>
+                                </div>
+                              );
+                            }
+                            return <span className="text-lg text-ink font-black tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>;
+                          })()}
+                        </div>
+                      </div>
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-muted font-black opacity-30">{product.category || 'Premium Edition'}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {filteredProducts.length === 0 && (
+                <div className="col-span-full py-40 text-center space-y-8 opacity-30">
+                  <SlidersHorizontal size={48} className="mx-auto text-gold mb-6" strokeWidth={1} />
+                  <p className="text-sm font-serif italic text-ink">No units match your selection criteria.</p>
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="text-[10px] uppercase tracking-[0.4em] font-black text-gold hover:underline"
+                  >
+                    Reset Environment
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
-
-
     </div>
   );
 };

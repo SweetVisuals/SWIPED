@@ -15,7 +15,7 @@ export interface Product {
   category: string;
   tags?: string[];
   inventory: number;
-  status: 'active' | 'draft';
+  status: 'active' | 'draft' | 'archived';
   variants?: {
     colors?: string[];
     sizes?: string[];
@@ -59,7 +59,7 @@ export interface PaymentMethod {
   id: string;
   name: string;
   enabled: boolean;
-  type: 'card' | 'paypal' | 'klarna' | 'test';
+  type: 'card' | 'paypal' | 'klarna' | 'test' | 'crypto';
 }
 
 export interface ShippingMethod {
@@ -72,6 +72,7 @@ export interface ShippingMethod {
 export interface Category {
   id: string;
   name: string;
+  slug: string;
   created_at?: string;
 }
 
@@ -82,6 +83,19 @@ export interface StoreSettings {
   heroBannerUrl: string;
   instagramUrl?: string;
   tiktokUrl?: string;
+  supportEmail?: string;
+  promoBannerEnabled: boolean;
+  promoBannerText: string;
+  heroEnabled: boolean;
+  badgesEnabled: boolean;
+  subscriptionsEnabled: boolean;
+  subscriptionDiscountPercent: number;
+  paypalEmail?: string;
+  paypalMeLink?: string;
+  cryptoUsdcAddress?: string;
+  passwordLockEnabled: boolean;
+  passwordLockPassword?: string;
+  passwordLockExpiresAt?: string;
   colors: {
     ink: string;
     paper: string;
