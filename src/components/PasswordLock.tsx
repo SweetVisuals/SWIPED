@@ -62,7 +62,7 @@ export const PasswordLock: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-paper overflow-hidden" style={{ backgroundColor: theme.paper }}>
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-start md:justify-center bg-paper overflow-y-auto no-scrollbar py-12 md:py-0" style={{ backgroundColor: theme.paper }}>
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div 
@@ -79,7 +79,7 @@ export const PasswordLock: React.FC = () => {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative w-full max-w-lg p-8 lg:p-16 text-center space-y-12"
+        className="relative w-full max-w-lg px-6 py-8 md:p-16 text-center space-y-12"
       >
         {/* Branding */}
         <div className="space-y-4">
@@ -89,7 +89,7 @@ export const PasswordLock: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="flex flex-col items-center"
           >
-            <span className="font-serif text-5xl italic font-bold uppercase tracking-[0.2em] text-gold" style={{ color: theme.gold }}>{storeSettings.name}</span>
+            <span className="font-serif text-3xl sm:text-4xl md:text-5xl italic font-bold uppercase tracking-[0.2em] text-gold leading-tight" style={{ color: theme.gold }}>{storeSettings.name}</span>
             <span className="text-[10px] tracking-[0.6em] font-bold opacity-40 uppercase mt-4" style={{ color: theme.ink }}>Private Editorial Access</span>
           </motion.div>
         </div>
