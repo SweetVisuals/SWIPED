@@ -287,7 +287,7 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
                     <div className="space-y-4 px-4">
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-serif text-2xl italic font-black group-hover:text-gold transition-colors leading-[0.9] uppercase tracking-tight truncate block flex-grow">{product.name}</h3>
+                          <h3 className="font-serif text-xl font-extrabold group-hover:text-gold transition-colors leading-[0.9] uppercase tracking-tighter truncate block flex-grow">{product.name}</h3>
                           {(() => {
                             const now = new Date();
                             const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
@@ -316,12 +316,12 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
                             if (currentPrice < product.price) {
                               return (
                                 <div className="flex items-baseline gap-3">
-                                  <span className="text-xl text-ink font-serif italic font-bold tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(currentPrice)}</span>
+                                  <span className="text-lg text-ink font-mono font-bold tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(currentPrice)}</span>
                                   <span className="text-[10px] text-muted line-through opacity-30 font-black tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>
                                 </div>
                               );
                             }
-                            return <span className="text-xl text-ink font-serif italic font-bold tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>;
+                            return <span className="text-lg text-ink font-mono font-bold tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>;
                           })()}
                         </div>
                       </div>
