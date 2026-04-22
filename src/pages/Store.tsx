@@ -138,8 +138,8 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
       )}
 
       {/* Product Feed */}
-      <section id="collection" className="max-w-7xl mx-auto px-8 md:px-16 pt-5 pb-20 md:py-20">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-24 items-start">
+      <section id="collection" className="max-w-7xl mx-auto px-8 md:px-16 pt-0 pb-20 md:py-20">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-24 items-start">
           {/* Desktop Filter Sidebar */}
           <div className="hidden lg:block">
             <ProductFilter 

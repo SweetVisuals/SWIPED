@@ -1348,11 +1348,11 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
                              )}
                           </div>
                         )}
-                        <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted mt-2">
-                          {item.preOrderEnabled ? (
-                            <span className="text-gold">Pre-order Edition</span>
-                          ) : 'Glaze Series Profile'}
-                        </p>
+                        {item.preOrderEnabled && (
+                          <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-gold mt-2">
+                            Pre-order Edition
+                          </p>
+                        )}
                       </div>
                       <div className="flex justify-between items-end">
                         <div className="flex items-center gap-6 text-[11px] font-bold uppercase tracking-widest px-4 py-2 bg-paper shadow-[0_5px_15px_rgba(0,0,0,0.05)]">
