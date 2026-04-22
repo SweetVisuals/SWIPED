@@ -19,7 +19,7 @@
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
   --font-brand: "Syne", sans-serif;
-  --font-serif: "Playfair Display", serif;
+  --font-serif: "Syne", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   
   --color-ink: var(--ink);

@@ -287,7 +287,7 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
                     <div className="space-y-4 px-4">
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-serif text-[11px] italic font-semibold group-hover:text-gold transition-colors leading-relaxed uppercase tracking-tight truncate block flex-grow">{product.name}</h3>
+                          <h3 className="font-serif text-[11px] font-extrabold group-hover:text-gold transition-colors leading-relaxed uppercase tracking-tighter truncate block flex-grow">{product.name}</h3>
                           {(() => {
                             const now = new Date();
                             const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
@@ -316,12 +316,12 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
                             if (currentPrice < product.price) {
                               return (
                                 <div className="flex items-baseline gap-3">
-                                  <span className="text-[11px] text-ink font-serif italic font-semibold tracking-tight tabular-nums whitespace-nowrap">{formatPrice(currentPrice)}</span>
+                                  <span className="text-[11px] text-ink font-serif font-extrabold tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(currentPrice)}</span>
                                   <span className="text-[9px] text-muted line-through opacity-30 font-bold tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>
                                 </div>
                               );
                             }
-                            return <span className="text-[11px] text-ink font-serif italic font-semibold tracking-tight tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>;
+                            return <span className="text-[11px] text-ink font-serif font-extrabold tracking-tighter tabular-nums whitespace-nowrap">{formatPrice(product.price)}</span>;
                           })()}
                         </div>
                       </div>
