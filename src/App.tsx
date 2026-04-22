@@ -22,6 +22,7 @@ import Profile from './pages/Profile';
 
 import { PromotionalBanner } from './components/PromotionalBanner';
 import { PasswordLock } from './components/PasswordLock';
+import { SEO } from './components/SEO';
 
 function AppContent() {
   const { isAdmin, isInitialLoading, policies, isAuthModalOpen, setIsAuthModalOpen, storeSettings } = useApp();
@@ -85,6 +86,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-paper text-ink">
+      <SEO />
       <ScrollToTop />
       <PromotionalBanner />
       <Header 

@@ -25,6 +25,12 @@ export const INITIAL_SETTINGS: StoreSettings = {
   passwordLockEnabled: false,
   passwordLockPassword: "",
   passwordLockExpiresAt: "",
+  seoTitle: "SWIPED BY | Premium Digital Goods",
+  seoDescription: "Premium technology atelier specializing in high-performance hardware and minimalist design.",
+  seoKeywords: "luxury, hardware, technology, atelier, phone, minimalist",
+  seoOgImage: "https://swiped-by.com/og-image.jpg",
+  faviconUrl: "/favicon.ico",
+  googleAnalyticsId: "",
   colors: {
     ink: "#000000",
     paper: "#ffffff",

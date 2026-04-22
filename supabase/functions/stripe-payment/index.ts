@@ -22,7 +22,7 @@ serve(async (req) => {
         customer_email: email,
         line_items: [
           {
-            // Mapping from user
+            // IMPORTANT: Update these Price IDs to match your new Live Stripe account
             price: interval === 'fortnightly' ? 'price_1TOgu3HhaunZcJ9FafFrifVJ' : 'price_1TOgvWHhaunZcJ9Fb0InxB0H',
             quantity: 1,
           },

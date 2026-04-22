@@ -227,6 +227,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               passwordLockEnabled: settingsData.password_lock_enabled ?? false,
               passwordLockPassword: settingsData.password_lock_password || '',
               passwordLockExpiresAt: settingsData.password_lock_expires_at || '',
+              seoTitle: settingsData.seo_title || INITIAL_SETTINGS.seoTitle,
+              seoDescription: settingsData.seo_description || INITIAL_SETTINGS.seoDescription,
+              seoKeywords: settingsData.seo_keywords || INITIAL_SETTINGS.seoKeywords,
+              seoOgImage: settingsData.seo_og_image || INITIAL_SETTINGS.seoOgImage,
+              faviconUrl: settingsData.favicon_url || INITIAL_SETTINGS.faviconUrl,
+              googleAnalyticsId: settingsData.google_analytics_id || INITIAL_SETTINGS.googleAnalyticsId,
               colors: (settingsData.colors as any) || INITIAL_SETTINGS.colors
             });
         }
@@ -616,6 +622,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           password_lock_enabled: newSettings.passwordLockEnabled,
           password_lock_password: newSettings.passwordLockPassword,
           password_lock_expires_at: newSettings.passwordLockExpiresAt || null,
+          seo_title: newSettings.seoTitle,
+          seo_description: newSettings.seoDescription,
+          seo_keywords: newSettings.seoKeywords,
+          seo_og_image: newSettings.seoOgImage,
+          favicon_url: newSettings.faviconUrl,
+          google_analytics_id: newSettings.googleAnalyticsId,
           colors: newSettings.colors as any
         })
         .eq('id', settingsId);
@@ -965,7 +977,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           customer_name: orderData.customer_name,
           customer_email: orderData.customer_email.toLowerCase(),
           total: orderData.total,
-          status: 'pending',
+          status: orderData.paypal_order_id ? 'processed' : 'pending',
           stripe_payment_intent_id: orderData.stripe_payment_intent_id,
           paypal_order_id: orderData.paypal_order_id,
           payment_method_id: orderData.payment_method_id,

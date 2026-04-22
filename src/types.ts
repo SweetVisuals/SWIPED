@@ -98,6 +98,12 @@ export interface StoreSettings {
   passwordLockEnabled: boolean;
   passwordLockPassword?: string;
   passwordLockExpiresAt?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  seoOgImage?: string;
+  faviconUrl?: string;
+  googleAnalyticsId?: string;
   colors: {
     ink: string;
     paper: string;

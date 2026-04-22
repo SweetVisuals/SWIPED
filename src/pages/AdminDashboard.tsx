@@ -2860,35 +2860,111 @@ const SettingsTab = () => {
                 </div>
              </div>
 
-             <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
-                <div className="flex items-center gap-4">
-                   <div className="w-10 h-10 bg-gold/10 rounded flex items-center justify-center text-gold">
-                      <Globe size={18} />
-                   </div>
-                   <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">Identity & Presence</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-4">
-                      <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Atelier Name</label>
-                      <input 
-                         type="text" 
-                         value={localSettings.storeName || localSettings.name}
-                         onChange={(e) => setLocalSettings({...localSettings, storeName: e.target.value, name: e.target.value})}
-                         className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors uppercase" 
-                      />
-                   </div>
-                   <div className="space-y-4">
-                      <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Support Correspondence</label>
-                      <input 
-                         type="email" 
-                         value={localSettings.supportEmail}
-                         onChange={(e) => setLocalSettings({...localSettings, supportEmail: e.target.value})}
-                         className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors lowercase" 
-                      />
-                   </div>
-                </div>
-             </div>
+              <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
+                 <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-gold/10 rounded flex items-center justify-center text-gold">
+                       <Globe size={18} />
+                    </div>
+                    <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">SEO Optimization & Search Presence</h3>
+                 </div>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Browser Tab Title (Tab Text)</label>
+                       <input 
+                          type="text" 
+                          value={localSettings.seoTitle || ''}
+                          onChange={(e) => setLocalSettings({...localSettings, seoTitle: e.target.value})}
+                          placeholder="e.g. SWIPED BY | Luxury Phone Cases"
+                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                       />
+                       <p className="text-[9px] text-muted italic">Customize what appears in the browser tab.</p>
+                    </div>
+                    <div className="space-y-4">
+                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Social Sharing Image (OG Image)</label>
+                       <input 
+                          type="text" 
+                          value={localSettings.seoOgImage || ''}
+                          onChange={(e) => setLocalSettings({...localSettings, seoOgImage: e.target.value})}
+                          placeholder="https://..."
+                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                       />
+                       <p className="text-[9px] text-muted italic">Image used when sharing the site on social media.</p>
+                    </div>
+                    <div className="space-y-4 md:col-span-2">
+                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Favicon URL (Site Icon)</label>
+                       <input 
+                          type="text" 
+                          value={localSettings.faviconUrl || ''}
+                          onChange={(e) => setLocalSettings({...localSettings, faviconUrl: e.target.value})}
+                          placeholder="https://... or /favicon.ico"
+                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                       />
+                       <p className="text-[9px] text-muted italic">Small icon shown in the browser tab.</p>
+                    </div>
+                    <div className="space-y-4 md:col-span-2">
+                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Google Analytics Measurement ID</label>
+                       <input 
+                          type="text" 
+                          value={localSettings.googleAnalyticsId || ''}
+                          onChange={(e) => setLocalSettings({...localSettings, googleAnalyticsId: e.target.value})}
+                          placeholder="G-XXXXXXXXXX"
+                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                       />
+                       <p className="text-[9px] text-muted italic">Track site traffic and performance.</p>
+                    </div>
+                    <div className="space-y-4 md:col-span-2">
+                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Meta Description</label>
+                       <textarea 
+                          value={localSettings.seoDescription || ''}
+                          onChange={(e) => setLocalSettings({...localSettings, seoDescription: e.target.value})}
+                          rows={3}
+                          placeholder="Brief summary of your site for search engines..."
+                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors resize-none" 
+                       />
+                    </div>
+                    <div className="space-y-4 md:col-span-2">
+                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Search Keywords</label>
+                       <input 
+                          type="text" 
+                          value={localSettings.seoKeywords || ''}
+                          onChange={(e) => setLocalSettings({...localSettings, seoKeywords: e.target.value})}
+                          placeholder="luxury, phone, case, exclusive (comma separated)"
+                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors" 
+                       />
+                    </div>
+                 </div>
+              </div>
+
+              <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
+                 <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-gold/10 rounded flex items-center justify-center text-gold">
+                       <UserPlus size={18} />
+                    </div>
+                    <h3 className="text-xs uppercase tracking-[0.4em] font-bold text-gold/60">Identity & Presence</h3>
+                 </div>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Atelier Name</label>
+                       <input 
+                          type="text" 
+                          value={localSettings.storeName || localSettings.name}
+                          onChange={(e) => setLocalSettings({...localSettings, storeName: e.target.value, name: e.target.value})}
+                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors uppercase" 
+                       />
+                    </div>
+                    <div className="space-y-4">
+                       <label className="text-[10px] uppercase text-muted font-bold tracking-widest">Support Correspondence</label>
+                       <input 
+                          type="email" 
+                          value={localSettings.supportEmail}
+                          onChange={(e) => setLocalSettings({...localSettings, supportEmail: e.target.value})}
+                          className="w-full bg-accent/10 p-4 text-[10px] font-bold tracking-widest text-ink outline-none focus:bg-accent/20 transition-colors lowercase" 
+                       />
+                    </div>
+                 </div>
+              </div>
 
              <div className="bg-paper p-4 lg:p-8 rounded-lg space-y-8">
                 <div className="flex items-center gap-4">
