@@ -21,7 +21,7 @@ export const formatPrice = (amount: number, currency: string = 'GBP') => {
   });
 
   // Return symbol with a thin space for a premium editorial look
-  return `${config.symbol} ${formattedAmount}`;
+  return `${config.symbol}${formattedAmount}`;
 };
 
 
