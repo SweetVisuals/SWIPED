@@ -89,7 +89,7 @@ export const PasswordLock: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="flex flex-col items-center"
           >
-            <span className="font-serif text-3xl sm:text-4xl md:text-5xl italic font-bold uppercase tracking-[0.2em] text-gold leading-tight" style={{ color: theme.gold }}>{storeSettings.name}</span>
+            <span className="font-brand text-3xl sm:text-4xl md:text-5xl italic font-bold uppercase tracking-[0.2em] text-gold leading-tight" style={{ color: theme.gold }}>{storeSettings.name}</span>
             <span className="text-[10px] tracking-[0.6em] font-bold opacity-40 uppercase mt-4" style={{ color: theme.ink }}>Private Editorial Access</span>
           </motion.div>
         </div>
