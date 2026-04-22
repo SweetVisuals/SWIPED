@@ -619,7 +619,7 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
   }
 
   return (
-    <div className="bg-paper min-h-screen py-8 lg:py-24 px-2 md:px-4">
+    <div className="bg-paper min-h-screen py-8 lg:py-24 px-12 md:px-4">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
         
         {/* Left Column: Form / Steps */}
@@ -716,26 +716,28 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
               </div>
             </section>
 
-            <section>
-              <div className="flex items-center gap-6 mb-10">
-                 <div className="w-10 h-10 flex items-center justify-center text-xs font-bold bg-accent/10 rounded-none italic serif shadow-sm">03</div>
-                 <h2 className="text-[11px] uppercase tracking-[0.3em] font-bold">Delivery Priority</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="p-6 bg-accent/10 flex justify-between items-center group shadow-sm">
-                   <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-paper flex items-center justify-center text-gold">
-                         <Ship size={18} />
-                      </div>
-                      <div>
-                         <p className="text-[10px] uppercase font-bold tracking-widest">{selectedRegion?.name || 'Standard Courier'}</p>
-                         <p className="text-[8px] text-muted uppercase mt-1">Priority handling to {customerInfo.country}</p>
-                      </div>
-                   </div>
-                   <span className="text-sm font-bold text-ink">{formatPrice(shippingPrice)}</span>
+            {shippingPrice > 0 && (
+              <section>
+                <div className="flex items-center gap-6 mb-10">
+                   <div className="w-10 h-10 flex items-center justify-center text-xs font-bold bg-accent/10 rounded-none italic serif shadow-sm">03</div>
+                   <h2 className="text-[11px] uppercase tracking-[0.3em] font-bold">Delivery Priority</h2>
                 </div>
-              </div>
-            </section>
+                <div className="space-y-4">
+                  <div className="p-6 bg-accent/10 flex justify-between items-center group shadow-sm">
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-paper flex items-center justify-center text-gold">
+                           <Ship size={18} />
+                        </div>
+                        <div>
+                           <p className="text-[10px] uppercase font-bold tracking-widest">{selectedRegion?.name || 'Standard Courier'}</p>
+                           <p className="text-[8px] text-muted uppercase mt-1">Priority handling to {customerInfo.country}</p>
+                        </div>
+                     </div>
+                     <span className="text-sm font-bold text-ink">{formatPrice(shippingPrice)}</span>
+                  </div>
+                </div>
+              </section>
+            )}
 
             {storeSettings.subscriptionsEnabled && (
               <section>
@@ -826,8 +828,8 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
               </section>
             )}
 
-            <section id="requirement-agreements" className="space-y-8 bg-accent/5 p-8 shadow-inner">
-               <div className="flex items-center gap-4 mb-2">
+            <section id="requirement-agreements" className="space-y-8 bg-accent/5 p-8 pb-20 shadow-inner">
+               <div className="flex items-center gap-4 mb-16">
                   <Lock size={14} className="text-muted" />
                   <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-ink">Requirement Agreements</h3>
                </div>
@@ -913,7 +915,7 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
               </div>
 
               {/* Dynamic Payment Method UI */}
-              <div className="bg-accent/5 px-0 py-6 md:p-6 shadow-inner min-h-[150px]">
+              <div className="bg-accent/5 px-8 py-10 md:p-12 shadow-inner min-h-[150px]">
                  {selectedPaymentId && (
                     <>
                        {paymentMethods.find(p => p.id === selectedPaymentId)?.type === 'paypal' && (
@@ -1316,7 +1318,7 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
               
               <div className="space-y-10 max-h-[40vh] overflow-y-auto no-scrollbar pr-2">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex gap-8">
+                  <div key={item.cartItemId} className="flex gap-8">
                     <div className="w-20 aspect-square bg-white p-2 shrink-0 rounded-none shadow-xl relative">
                       {item.preOrderEnabled && (
                         <div className="absolute top-2 left-2 z-10 bg-gold text-paper px-2 py-0.5 text-[7px] font-bold uppercase tracking-widest">
@@ -1329,10 +1331,23 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
                       <div>
                         <div className="flex justify-between items-start">
                           <h3 className="font-serif text-xl italic text-ink">{item.name}</h3>
-                          <button onClick={() => removeFromCart(item.id)} className="text-muted hover:text-ink transition-colors">
+                          <button onClick={() => removeFromCart(item.cartItemId)} className="text-muted hover:text-ink transition-colors">
                             <Trash2 size={16} />
                           </button>
                         </div>
+                        {item.selectedOptions && (
+                          <div className="flex gap-3 mt-2">
+                             {item.selectedOptions.color && (
+                               <div className="flex items-center gap-2">
+                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.selectedOptions.color.toLowerCase() }} />
+                                 <span className="text-[8px] uppercase tracking-widest font-black text-muted">{item.selectedOptions.color}</span>
+                               </div>
+                             )}
+                             {item.selectedOptions.storage && (
+                               <span className="text-[8px] uppercase tracking-widest font-black text-muted bg-accent/5 px-2 py-0.5 rounded-full">{item.selectedOptions.storage}</span>
+                             )}
+                          </div>
+                        )}
                         <p className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted mt-2">
                           {item.preOrderEnabled ? (
                             <span className="text-gold">Pre-order Edition</span>
@@ -1341,9 +1356,9 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
                       </div>
                       <div className="flex justify-between items-end">
                         <div className="flex items-center gap-6 text-[11px] font-bold uppercase tracking-widest px-4 py-2 bg-paper shadow-[0_5px_15px_rgba(0,0,0,0.05)]">
-                          <button onClick={() => updateCartQuantity(item.id, item.quantity - 1)} className="text-ink/40 hover:text-ink transition-all active:scale-90">-</button>
+                          <button onClick={() => updateCartQuantity(item.cartItemId, item.quantity - 1)} className="text-ink/40 hover:text-ink transition-all active:scale-90">-</button>
                           <span className="text-ink w-4 text-center">{item.quantity}</span>
-                          <button onClick={() => updateCartQuantity(item.id, item.quantity + 1)} className="text-ink/40 hover:text-ink transition-all active:scale-90">+</button>
+                          <button onClick={() => updateCartQuantity(item.cartItemId, item.quantity + 1)} className="text-ink/40 hover:text-ink transition-all active:scale-90">+</button>
                         </div>
                         <p className="text-sm font-bold text-ink">{formatPrice(item.price * item.quantity)}</p>
                       </div>
@@ -1353,10 +1368,12 @@ export const Checkout: React.FC<CheckoutProps> = ({ onBack, onSuccessRedirect })
               </div>
 
               <div className="space-y-6 pt-12 shadow-[0_-1px_0_rgba(0,0,0,0.05)]">
-                <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] font-bold text-muted">
-                   <span>Logistics</span>
-                   <span className="text-ink">{formatPrice(shippingPrice)}</span>
-                </div>
+                {shippingPrice > 0 && (
+                  <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] font-bold text-muted">
+                     <span>Logistics</span>
+                     <span className="text-ink">{formatPrice(shippingPrice)}</span>
+                  </div>
+                )}
                 {discountAmount > 0 && (
                    <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] font-bold text-green-600">
                       <span>Applied Offer</span>

@@ -93,7 +93,7 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
 
       {/* Trust Badges - Modern Layout */}
       {storeSettings.badgesEnabled && (
-        <section className="max-w-7xl mx-auto px-8 md:px-16 py-40">
+        <section className="max-w-7xl mx-auto px-8 md:px-16 pt-20 pb-10 md:py-40">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -138,8 +138,8 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
       )}
 
       {/* Product Feed */}
-      <section id="collection" className="max-w-7xl mx-auto px-8 md:px-16 py-20">
-        <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
+      <section id="collection" className="max-w-7xl mx-auto px-8 md:px-16 pt-5 pb-20 md:py-20">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-24 items-start">
           {/* Desktop Filter Sidebar */}
           <div className="hidden lg:block">
             <ProductFilter 
@@ -151,11 +151,11 @@ export const Store: React.FC<StoreProps> = ({ onProductClick }) => {
           </div>
 
           {/* Mobile Filter Toggle */}
-          <div className="lg:hidden w-full mb-8">
+          <div className="lg:hidden w-full">
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsFilterOpen(true)}
-              className="w-full py-6 bg-accent/5 rounded-[2rem] flex items-center justify-center gap-4 text-[11px] font-black uppercase tracking-[0.4em] text-ink hover:bg-accent/10 transition-all border-none"
+              className="w-full py-2 bg-accent/5 rounded-[2rem] flex items-center justify-center gap-4 text-[11px] font-black uppercase tracking-[0.4em] text-ink hover:bg-accent/10 transition-all border-none"
             >
               <SlidersHorizontal size={16} className="text-gold" />
               Refine Collection

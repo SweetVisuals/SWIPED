@@ -10,9 +10,16 @@ import { INITIAL_PRODUCTS, INITIAL_SETTINGS } from '../data';
 import { supabase } from '../supabase';
 import { Database } from '../types/database';
 import { formatPrice as formatPriceUtil, slugify } from '../utils/format';
+import { calculateVariantPrice } from '../utils/pricing';
 
 interface CartItem extends Product {
+  cartItemId: string;
   quantity: number;
+  selectedOptions?: {
+    color?: string;
+    storage?: string;
+    tier?: string;
+  };
 }
 
 interface AppContextType {
@@ -35,9 +42,9 @@ interface AppContextType {
   setCoupons: (coupons: Coupon[]) => void;
   setPolicies: (policies: Policy[]) => void;
   setStoreSettings: (settings: StoreSettings) => void;
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateCartQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number, options?: { color?: string, storage?: string, tier?: string }) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateCartQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   loginAsAdmin: () => void;
   logout: () => void;
@@ -496,7 +503,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     root.style.setProperty('--limitedTime', storeSettings.colors.limitedTime);
   }, [storeSettings.colors]);
 
-  const addToCart = (product: Product, quantity: number = 1) => {
+  const addToCart = (product: Product, quantity: number = 1, options?: { color?: string, storage?: string, tier?: string }) => {
     const now = new Date();
     const preOrderEndsAt = product.preOrderEndsAt ? new Date(product.preOrderEndsAt) : null;
     const limitedTimeEndsAt = product.limitedTimeEndsAt ? new Date(product.limitedTimeEndsAt) : null;
@@ -508,31 +515,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (!isAvailable) return; 
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      const currentPrice = (isPreOrderActive && product.preOrderPrice) 
+      // Find item with same ID AND same options
+      const existing = prev.find(item => 
+        item.id === product.id && 
+        JSON.stringify(item.selectedOptions) === JSON.stringify(options)
+      );
+
+      const basePrice = (isPreOrderActive && product.preOrderPrice) 
         ? product.preOrderPrice 
         : (product.salePrice && product.salePrice < product.price ? product.salePrice : product.price);
       
+      const currentPrice = calculateVariantPrice(basePrice, product.variants?.storage, options?.storage);
+      
       if (existing) {
         return prev.map(item => 
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity, price: currentPrice } : item
+          item.cartItemId === existing.cartItemId
+            ? { ...item, quantity: item.quantity + quantity, price: currentPrice } 
+            : item
         );
       }
-      return [...prev, { ...product, quantity, price: currentPrice }];
+      const cartItemId = `${product.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      return [...prev, { ...product, cartItemId, quantity, price: currentPrice, selectedOptions: options }];
     });
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart(prev => prev.filter(item => item.id !== productId));
+  const removeFromCart = (cartItemId: string) => {
+    setCart(prev => prev.filter(item => item.cartItemId !== cartItemId));
   };
 
-  const updateCartQuantity = (productId: string, quantity: number) => {
+  const updateCartQuantity = (cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(cartItemId);
       return;
     }
     setCart(prev => prev.map(item => 
-      item.id === productId ? { ...item, quantity } : item
+      item.cartItemId === cartItemId ? { ...item, quantity } : item
     ));
   };
 

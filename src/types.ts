@@ -18,6 +18,8 @@ export interface Product {
   status: 'active' | 'draft' | 'archived';
   variants?: {
     colors?: string[];
+    storage?: string[];
+    tiers?: string[];
     sizes?: string[];
   };
   preOrderEnabled?: boolean;

@@ -8,6 +8,7 @@ import { useApp } from '../context/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { Minus, Plus, Share2, Info, ChevronLeft, Clock, ShieldCheck, Truck, Sparkles, Cpu, Zap, Globe, Package, ArrowRight } from 'lucide-react';
 import { CountdownTimer } from '../components/CountdownTimer';
+import { calculateVariantPrice } from '../utils/pricing';
 
 interface ProductPageProps {
   productId: string;
@@ -45,9 +46,11 @@ export const ProductPage: React.FC<ProductPageProps> = ({ productId, onBack, onC
   const isLimitedTimeActive = !!(product.limitedTimeEnabled && limitedTimeEndsAt && now < limitedTimeEndsAt && (!preOrderEndsAt || now > preOrderEndsAt));
   const isReserveOrder = !!(product.limitedTimeEnabled && limitedTimeEndsAt && now >= limitedTimeEndsAt);
 
-  const currentPrice = (isPreOrderActive && product.preOrderPrice) 
+  const basePrice = (isPreOrderActive && product.preOrderPrice) 
     ? product.preOrderPrice 
     : (product.salePrice && product.salePrice < product.price ? product.salePrice : product.price);
+  
+  const currentPrice = calculateVariantPrice(basePrice, product.variants?.storage, selectedStorage);
   const isAvailable = isDropActive || isPreOrderActive || isLimitedTimeActive || isReserveOrder;
 
   const activeTimerTarget = isPreOrderActive ? preOrderEndsAt : (isLimitedTimeActive ? limitedTimeEndsAt : null);
